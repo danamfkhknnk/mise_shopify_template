@@ -1,0 +1,72 @@
+{% style %}
+  :root {
+    --font-primary--family: "Quicksand", ui-sans-serif, system-ui, sans-serif;
+    --font-primary--style: normal;
+    --font-primary--weight: 400;
+    --font-display--family: "Quicksand", ui-sans-serif, system-ui, sans-serif;
+    --page-width: {{ settings.max_page_width }};
+    --page-margin: {{ settings.min_page_margin }}px;
+
+    /* Watercolor Storybook Palette */
+    --color-background: {{ settings.background_color }};
+    --color-foreground: {{ settings.foreground_color }};
+    --color-muted: {{ settings.muted_color }};
+    --color-surface: {{ settings.surface_color }};
+    --color-accent: {{ settings.accent_color }};
+    --color-accent-hover: {{ settings.accent_hover_color }};
+
+    --color-blush: #C4727F;
+    --color-sky: #7BA7C2;
+    --color-sage: #8BAA7D;
+    --color-golden: #C4A265;
+    --color-lavender: #9B8EC4;
+    --color-terracotta: #C08B6E;
+    --color-cream: #F5EDE0;
+    --color-linen: #EDE6D9;
+    --color-success: #6B9E6B;
+    --color-warning: #C4A265;
+
+    /* Section backgrounds — alternating watercolor tints */
+    --bg-about: #F5EDE0;
+    --bg-team: #FAF7F2;
+    --bg-testimonials: rgba(196,114,127,0.04);
+    --bg-services: rgba(123,167,194,0.04);
+    --bg-gallery: #FAF7F2;
+    --bg-addons: rgba(155,142,196,0.04);
+    --bg-contact: rgba(139,170,125,0.04);
+    --bg-faq: #F5EDE0;
+
+    /* Watercolor gradients */
+    --gradient-primary: linear-gradient(135deg, #C4727F 0%, #9B8EC4 100%);
+    --gradient-primary-hover: linear-gradient(135deg, #A85A68 0%, #7B6FAA 100%);
+    --gradient-watercolor-1: linear-gradient(135deg, rgba(196,114,127,0.12) 0%, rgba(123,167,194,0.08) 100%);
+    --gradient-watercolor-2: linear-gradient(135deg, rgba(139,170,125,0.1) 0%, rgba(196,162,101,0.08) 100%);
+    --gradient-watercolor-3: linear-gradient(135deg, rgba(155,142,196,0.1) 0%, rgba(196,114,127,0.06) 100%);
+    --gradient-cream: linear-gradient(180deg, #FAF7F2 0%, #F5EDE0 100%);
+    --gradient-warm: linear-gradient(135deg, #FAF7F2, #F5EDE0, #EDE6D9);
+
+    /* Shadows — soft, warm, organic */
+    --shadow-soft: 0 2px 20px rgba(45, 42, 38, 0.06);
+    --shadow-card: 0 4px 24px rgba(45, 42, 38, 0.08);
+    --shadow-card-hover: 0 8px 40px rgba(45, 42, 38, 0.12);
+    --shadow-accent: 0 4px 20px rgba(196, 114, 127, 0.15);
+    --shadow-accent-lg: 0 8px 40px rgba(196, 114, 127, 0.2);
+
+    --border-subtle: 1px solid rgba(45, 42, 38, 0.08);
+    --border-card: 1px solid rgba(45, 42, 38, 0.06);
+    --border-accent: 1px solid rgba(196, 114, 127, 0.25);
+
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.75rem;
+    --radius-full: 9999px;
+
+    --icon-stroke-width: 1.5px;
+    --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
+
+    /* Watercolor texture (CSS-only linen effect) */
+    --texture-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%23FAF7F2'/%3E%3Crect width='1' height='1' fill='%23F5EDE0' opacity='0.5'/%3E%3C/svg%3E");
+  }
+{% endstyle %}

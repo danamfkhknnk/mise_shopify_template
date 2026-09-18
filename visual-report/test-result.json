@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "threshold": 0.5,
+  "results": {
+    "desktop": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 2193,
+      "diffPercentage": 0.15
+    },
+    "large-desktop": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 2199,
+      "diffPercentage": 0.19
+    },
+    "mobile": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 571,
+      "diffPercentage": 0.17
+    },
+    "tablet": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 1701,
+      "diffPercentage": 0.22
+    }
+  }
+}

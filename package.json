@@ -1,0 +1,26 @@
+{
+  "name": "arthehope",
+  "version": "1.0.0",
+  "description": "<h1 align=\"center\" style=\"position: relative;\">\r   <br>\r     <img src=\"./assets/shoppy-x-ray.svg\" alt=\"logo\" width=\"200\">\r   <br>\r   Shopify Skeleton Theme\r </h1>",
+  "main": "index.js",
+  "scripts": {
+    "tailwind:build": "npx tailwindcss -i ./assets/tailwind.input.css -o ./assets/tailwind.css --minify",
+    "tailwind:watch": "npx tailwindcss -i ./assets/tailwind.input.css -o ./assets/tailwind.css --watch",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "ui:screenshot": "node scripts/visual/screenshot.mjs",
+    "ui:compare": "node scripts/visual/compare.mjs",
+    "ui:check": "npm run ui:screenshot && npm run ui:compare"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "autoprefixer": "^10.6.1",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
+    "postcss": "^8.5.28",
+    "tailwindcss": "^3.4.19"
+  }
+}

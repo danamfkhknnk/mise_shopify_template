@@ -1,0 +1,1 @@
+/Users/mm/Project/arthehope/AGENTS.md

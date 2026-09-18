@@ -1,0 +1,192 @@
+{% doc %}
+  Renders a custom cursor with smooth dot follower and SVG cursor morph.
+  Default cursor uses cursor-svgrepo-com.svg, pointer uses pointer-svgrepo-com.svg.
+  Morphs between states with smooth transition.
+
+  @example
+  {% render 'custom-cursor' %}
+{% enddoc %}
+
+<div class="cursor" aria-hidden="true">
+  <div class="cursor__dot"></div>
+  <div class="cursor__default">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 4.075C0.897 2.467 2.467 0.897 4.075 1.5L21.216 7.928C23.122 8.643 22.866 11.416 20.861 11.77L13.134 13.134L11.77 20.861C11.416 22.866 8.643 23.122 7.928 21.216L1.5 4.075ZM3.373 3.373L9.8 20.513L11.164 12.786C11.31 11.958 11.958 11.31 12.786 11.164L20.513 9.8L3.373 3.373Z" fill="#0F0F0F"/>
+    </svg>
+  </div>
+  <div class="cursor__pointer">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M8.5 14.5L8.5 6.5C8.5 5.67 9.17 5 10 5C10.83 5 11.5 5.67 11.5 6.5V12.5H17.08C17.86 12.5 18.54 13.12 18.58 13.9L19.08 22.9C19.12 23.66 18.53 24.3 17.76 24.3L10.24 24.3C9.35 24.3 8.6 23.55 8.55 22.66L8.05 14.16C8.02 13.74 8.23 13.35 8.5 13.1L8.5 14.5Z" fill="#0F0F0F"/>
+    </svg>
+  </div>
+</div>
+
+{% stylesheet %}
+  /* Hide default cursor */
+  *, *::before, *::after {
+    cursor: none !important;
+  }
+
+  /* Cursor container */
+  .cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 99999;
+    pointer-events: none;
+  }
+
+  /* Smooth dot */
+  .cursor__dot {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #000;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                height 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+                background 0.3s ease,
+                opacity 0.3s ease;
+  }
+
+  /* SVG cursor base */
+  .cursor__default,
+  .cursor__pointer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 24px;
+    height: 24px;
+    transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .cursor__default svg,
+  .cursor__pointer svg {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+    display: block;
+  }
+
+  /* Default state */
+  .cursor__default {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  .cursor__pointer {
+    opacity: 0;
+    transform: translate(0, 4px) scale(0.5);
+  }
+
+  /* Pointer state — morph */
+  .cursor.is-pointer .cursor__default {
+    opacity: 0;
+    transform: translate(0, -4px) scale(0.5);
+  }
+
+  .cursor.is-pointer .cursor__pointer {
+    opacity: 1;
+    transform: translate(-2px, -2px) scale(1);
+  }
+
+  .cursor.is-pointer .cursor__dot {
+    width: 4px;
+    height: 4px;
+    background: transparent;
+  }
+
+  /* Click state */
+  .cursor.is-active .cursor__default svg,
+  .cursor.is-active .cursor__pointer svg {
+    transform: scale(0.85);
+  }
+
+  .cursor.is-active .cursor__dot {
+    transform: translate(-50%, -50%) scale(1.8);
+  }
+
+  /* Hover bump */
+  @keyframes cursor-bump {
+    0% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(2); }
+    100% { transform: translate(-50%, -50%) scale(1); }
+  }
+
+  .cursor.is-bump .cursor__dot {
+    animation: cursor-bump 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* Hide on mobile */
+  @media (pointer: coarse) {
+    .cursor {
+      display: none !important;
+    }
+    *, *::before, *::after {
+      cursor: auto !important;
+    }
+  }
+{% endstylesheet %}
+
+{% javascript %}
+  (function() {
+    var cursor = document.querySelector('.cursor');
+    if (!cursor) return;
+
+    var mouseX = 0, mouseY = 0;
+    var cursorX = 0, cursorY = 0;
+
+    // Smooth cursor follow
+    function animateCursor() {
+      var dx = mouseX - cursorX;
+      var dy = mouseY - cursorY;
+      cursorX += dx * 0.15;
+      cursorY += dy * 0.15;
+      cursor.style.transform = 'translate(' + cursorX + 'px, ' + cursorY + 'px)';
+      requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+
+    // Track mouse
+    document.addEventListener('mousemove', function(e) {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    // Hover detection
+    document.addEventListener('mouseover', function(e) {
+      var el = e.target.closest('a, button, [role="button"], input, select, textarea, label');
+      if (el) {
+        cursor.classList.add('is-pointer');
+        cursor.classList.remove('is-bump');
+        void cursor.offsetWidth;
+        cursor.classList.add('is-bump');
+      } else {
+        cursor.classList.remove('is-pointer');
+      }
+    });
+
+    // Click
+    document.addEventListener('mousedown', function() {
+      cursor.classList.add('is-active');
+    });
+
+    document.addEventListener('mouseup', function() {
+      cursor.classList.remove('is-active');
+    });
+
+    // Hide on leave
+    document.addEventListener('mouseleave', function() {
+      cursor.style.opacity = '0';
+    });
+
+    document.addEventListener('mouseenter', function() {
+      cursor.style.opacity = '1';
+    });
+  })();
+{% endjavascript %}

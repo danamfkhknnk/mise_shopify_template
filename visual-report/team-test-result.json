@@ -1,0 +1,24 @@
+{
+  "status": "FAIL",
+  "threshold": 0.5,
+  "results": {
+    "desktop": {
+      "status": "FAIL",
+      "source": "reference",
+      "diffPixels": 631817,
+      "diffPercentage": 42.85
+    },
+    "large-desktop": {
+      "status": "SKIPPED",
+      "reason": "no reference or baseline; baseline created"
+    },
+    "mobile": {
+      "status": "SKIPPED",
+      "reason": "no reference or baseline; baseline created"
+    },
+    "tablet": {
+      "status": "SKIPPED",
+      "reason": "no reference or baseline; baseline created"
+    }
+  }
+}
