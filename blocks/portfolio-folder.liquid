@@ -1,0 +1,83 @@
+{% doc %}
+  Renders a portfolio folder item with hover image reveal.
+
+  @param {string} title - The folder label
+  @param {image} [image] - Image shown on hover
+  @param {string} [link] - Optional URL the folder links to
+
+  @example
+  {% content_for 'block', type: 'portfolio-folder', id: 'folder-1' %}
+{% enddoc %}
+
+{% liquid
+  assign hero_entry = metaobjects.hero.values | first
+  assign folder_image = block.settings.image | default: hero_entry.image
+%}
+
+<div
+  class="portfolio-folder group cursor-pointer text-center flex flex-col items-center min-w-0 max-w-full"
+  {{ block.shopify_attributes }}
+>
+  <div class="relative mx-auto w-full max-w-[160px]">
+    <div class="relative z-0 text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto" aria-hidden="true">
+      {{ 'folder-back.svg' | inline_asset_content }}
+    </div>
+    {% if folder_image %}
+      <div class="portfolio-folder__peek absolute left-[14%] right-[14%] bottom-[10%] h-[58%] z-[1] rounded bg-white translate-y-[4%] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[90%] group-focus-within:-translate-y-[90%]" aria-hidden="true">
+        {{
+          folder_image
+          | image_url: width: 600
+          | image_tag:
+            class: 'rounded w-full h-full object-cover',
+            loading: 'lazy'
+        }}
+      </div>
+    {% endif %}
+    <div class="absolute inset-0 z-[2] pointer-events-none text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto" aria-hidden="true">
+      {{ 'folder-front.svg' | inline_asset_content }}
+    </div>
+  </div>
+  <div class="portfolio-folder__label font-primary inline-block border-2 border-foreground bg-white px-3 py-1.5 text-sm font-bold uppercase tracking-wide mt-[-11px] relative z-[2] rounded-[2px] -rotate-2 shadow-small max-w-full max-sm:text-[0.7rem] max-sm:leading-[1.2] max-sm:px-2 max-sm:py-1.5">
+    {{ block.settings.title }}
+  </div>
+</div>
+
+{% stylesheet %}
+  /* JS-toggled peek state (hover covered by group-hover: above) */
+  .portfolio-folder.is-peeking .portfolio-folder__peek {
+    transform: translateY(-90%);
+  }
+
+  .portfolio-folder:nth-child(even) .portfolio-folder__label {
+    transform: rotate(1.5deg);
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Portfolio folder",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Project name"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "url",
+      "id": "link",
+      "label": "Folder link (collection, product, or page)"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Portfolio folder"
+    }
+  ]
+}
+{% endschema %}

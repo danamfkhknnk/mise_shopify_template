@@ -1,30 +1,62 @@
 {
-  "status": "PASS",
+  "status": "FAIL",
   "threshold": 0.5,
   "results": {
+    "anim-1500ms": {
+      "status": "SKIPPED",
+      "reason": "no reference or baseline; baseline created"
+    },
+    "anim-3000ms": {
+      "status": "SKIPPED",
+      "reason": "no reference or baseline; baseline created"
+    },
+    "anim-3500ms": {
+      "status": "SKIPPED",
+      "reason": "no reference or baseline; baseline created"
+    },
+    "anim-500ms": {
+      "status": "SKIPPED",
+      "reason": "no reference or baseline; baseline created"
+    },
     "desktop": {
       "status": "PASS",
       "source": "baseline",
-      "diffPixels": 2193,
-      "diffPercentage": 0.15
+      "diffPixels": 0,
+      "diffPercentage": 0
+    },
+    "full-page": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 0,
+      "diffPercentage": 0
+    },
+    "hero-area": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 0,
+      "diffPercentage": 0
+    },
+    "image": {
+      "status": "FAIL",
+      "reason": "size mismatch: reference 1452x982 vs current 2578x1304"
     },
     "large-desktop": {
       "status": "PASS",
       "source": "baseline",
-      "diffPixels": 2199,
-      "diffPercentage": 0.19
+      "diffPixels": 0,
+      "diffPercentage": 0
     },
     "mobile": {
       "status": "PASS",
       "source": "baseline",
-      "diffPixels": 571,
-      "diffPercentage": 0.17
+      "diffPixels": 0,
+      "diffPercentage": 0
     },
     "tablet": {
       "status": "PASS",
       "source": "baseline",
-      "diffPixels": 1701,
-      "diffPercentage": 0.22
+      "diffPixels": 0,
+      "diffPercentage": 0
     }
   }
 }

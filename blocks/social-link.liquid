@@ -1,0 +1,59 @@
+{% doc %}
+  Renders a small rounded badge linking to a social profile, using the
+  matching platform icon from the asset library.
+
+  @example
+  {% content_for 'block', type: 'social-link', id: 'social-link-1' %}
+{% enddoc %}
+
+{% liquid
+  case block.settings.platform
+    when 'x'
+      assign icon_file = 'icon-social-x.svg'
+      assign platform_label = 'X'
+    when 'instagram'
+      assign icon_file = 'icon-social-instagram.svg'
+      assign platform_label = 'Instagram'
+    when 'email'
+      assign icon_file = 'icon-social-email.svg'
+      assign platform_label = 'Email'
+    when 'discord'
+      assign icon_file = 'icon-social-discord.svg'
+      assign platform_label = 'Discord'
+  endcase
+%}
+
+<a
+  href="{{ block.settings.url | default: '#' }}"
+  class="inline-flex items-center justify-center w-9 h-9 bg-foreground text-background rounded-pill [&_svg]:w-4 [&_svg]:h-4 [&_svg]:block"
+  aria-label="{{ platform_label }}"
+  {{ block.shopify_attributes }}
+>
+  {{ icon_file | inline_asset_content }}
+</a>
+
+{% schema %}
+{
+  "name": "t:general.social_link",
+  "settings": [
+    {
+      "type": "select",
+      "id": "platform",
+      "label": "t:labels.social_link_platform",
+      "options": [
+        { "value": "x", "label": "X" },
+        { "value": "instagram", "label": "Instagram" },
+        { "value": "email", "label": "Email" },
+        { "value": "discord", "label": "Discord" },
+      ],
+      "default": "x"
+    },
+    {
+      "type": "url",
+      "id": "url",
+      "label": "t:labels.social_link_url"
+    }
+  ],
+  "presets": [{ "name": "t:general.social_link" }]
+}
+{% endschema %}

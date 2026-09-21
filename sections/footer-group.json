@@ -13,8 +13,39 @@
   "sections": {
     "footer": {
       "type": "footer",
+      "blocks": {
+        "social-link-1": {
+          "type": "social-link",
+          "settings": { "platform": "x", "url": "" }
+        },
+        "social-link-3": {
+          "type": "social-link",
+          "settings": { "platform": "instagram", "url": "" }
+        },
+        "social-link-4": {
+          "type": "social-link",
+          "settings": { "platform": "email", "url": "" }
+        },
+        "social-link-5": {
+          "type": "social-link",
+          "settings": { "platform": "discord", "url": "" }
+        }
+      },
+      "block_order": [
+        "social-link-1",
+        "social-link-2",
+        "social-link-3",
+        "social-link-4",
+        "social-link-5"
+      ],
       "settings": {
-        "menu": "",
+        "background_color": "#DB7451",
+        "eyebrow_text": "Let's build something great together.",
+        "heading": "Got something you want me to draw? Drop it here!",
+        "button_label": "Let's work together",
+        "button_url": "",
+        "show_clock": true,
+        "menu": "main-menu",
         "show_payment_icons": true
       }
     }

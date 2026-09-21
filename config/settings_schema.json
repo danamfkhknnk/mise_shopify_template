@@ -59,14 +59,26 @@
       {
         "type": "color",
         "id": "background_color",
-        "default": "#FFFFFF",
+        "default": "#F0F0F0",
         "label": "t:labels.background"
       },
       {
         "type": "color",
         "id": "foreground_color",
-        "default": "#333333",
+        "default": "#111111",
         "label": "t:labels.foreground"
+      },
+      {
+        "type": "color",
+        "id": "accent_color",
+        "default": "#FE5E0F",
+        "label": "t:labels.accent"
+      },
+      {
+        "type": "color",
+        "id": "muted_color",
+        "default": "#6B6B6B",
+        "label": "t:labels.muted"
       },
       {
         "type": "range",

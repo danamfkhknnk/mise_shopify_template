@@ -17,6 +17,12 @@ html:has(dialog[scroll-lock][open], details[scroll-lock][open]) {
   overflow: hidden;
 }
 
+html {
+  scroll-behavior: smooth;
+  /* Fallback offset for anchor links under the fixed pill header (top-5 + header height) */
+  scroll-padding-top: 120px;
+}
+
 img,
 picture,
 video,
@@ -123,4 +129,48 @@ body {
 }
 .shopify-section-group-header-group > * {
   grid-column: 1 !important;
+}
+
+/**
+ * Roll-up hover effect: stacks an element and a duplicate of it, then
+ * slides the duplicate into view on hover. Used for nav links, buttons,
+ * and icons across the theme (header, footer, ...).
+ *
+ * Markup:
+ *   <a class="hover-rollup">
+ *     <span class="hover-rollup__item">Label</span>
+ *     <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">Label</span>
+ *   </a>
+ */
+.hover-rollup {
+  display: inline-flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.hover-rollup__item {
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-rollup__item--clone {
+  position: absolute;
+  top: 100%;
+  left: 0;
+}
+
+.hover-rollup:hover .hover-rollup__item {
+  transform: translateY(-100%);
+}
+
+/**
+ * Trigger the roll-up when hovering the parent button/link, so the
+ * effect fires anywhere on the button — not just over the label text.
+ * Only matches labels nested inside a button/link (nav links and icons
+ * that ARE the roll-up element are unaffected).
+ */
+a:hover > .hover-rollup .hover-rollup__item,
+button:hover > .hover-rollup .hover-rollup__item {
+  transform: translateY(-100%);
 }

@@ -1,0 +1,18 @@
+{% doc %}
+  Renders a badge component with accent border and fill.
+
+  @param {string} text - The badge text
+  @param {string} [css_class] - Optional additional classes
+
+  @example
+  {% render 'badge', text: 'New' %}
+  {% render 'badge', text: 'Featured', css_class: 'my-4' %}
+{% enddoc %}
+
+{% if text != blank %}
+  <div class="about-badge -rotate-6 -mb-3 inline-flex items-center justify-center rounded-md border-2 border-[var(--color-accent)] p-1 {{ css_class }}">
+    <span class="inline-flex items-center rounded-md bg-[var(--color-accent)] text-white font-primary text-xs font-bold uppercase tracking-[0.05em] px-3 py-2">
+      {{ text }}
+    </span>
+  </div>
+{% endif %}

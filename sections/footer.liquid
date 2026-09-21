@@ -1,50 +1,215 @@
-<footer>
-  <div class="footer__copyright">
-    &copy;
-    {{ 'now' | date: '%Y' }}
-    {{ shop.name | link_to: routes.root_url }}, {{ powered_by_link }}
-  </div>
+<footer
+  class="full-width w-full py-20 px-6 text-white [&_a]:text-inherit bg-[#030303]"
+  data-footer
+>
+  <div class="flex flex-col max-w-[1400px] mx-auto">
+    <div class="flex items-start justify-between gap-4">
+      <p class="m-0 font-primary text-xl font-extrabold tracking-[0.02em] uppercase no-underline">{{ shop.name | link_to: routes.root_url }}</p>
 
-  <div class="footer__links">
-    {% for link in section.settings.menu.links %}
-      {{ link.title | link_to: link.url }}
-    {% endfor %}
-  </div>
+      {% if section.settings.show_clock %}
+        <div
+          class="font-primary text-base font-medium tracking-[0.05em] [font-variant-numeric:tabular-nums]"
+          data-footer-clock
+          aria-live="polite"
+        >
+          00:00:00
+        </div>
+      {% endif %}
+    </div>
 
-  <div class="footer__payment">
-    {% if section.settings.show_payment_icons %}
-      {% for type in shop.enabled_payment_types %}
-        {{ type | payment_type_svg_tag }}
-      {% endfor %}
+    <div class="flex flex-col items-center text-center gap-5 py-14 px-4">
+      {% if section.settings.eyebrow_text != blank %}
+        <p class="inline-flex items-center gap-2.5 m-0 text-[0.9rem]">
+          <span class="w-2 h-2 rounded-full bg-current" aria-hidden="true"></span>
+          {{ section.settings.eyebrow_text }}
+        </p>
+      {% endif %}
+
+      {% if section.settings.heading != blank %}
+        <h2 data-footer-heading class="font-primary max-w-[24ch] m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.1] uppercase">{{ section.settings.heading }}</h2>
+      {% endif %}
+
+      {% if section.settings.button_label != blank %}
+        <a href="{{ section.settings.button_url | default: '#' }}" data-magnetic class="font-primary rounded-md inline-flex items-center gap-2.5 py-3.5 px-6 border-2 border-foreground bg-[var(--color-accent)] text-white font-bold no-underline">
+          <span class="hover-rollup leading-[1.3] h-[1.3em]">
+            <span class="hover-rollup__item">{{ section.settings.button_label }}</span>
+            <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.button_label }}</span>
+          </span>
+          <span class="inline-flex shrink-0" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+              <polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </span>
+        </a>
+      {% endif %}
+    </div>
+
+    {% if section.settings.menu != blank %}
+      <nav class="flex flex-col items-center gap-4 pb-12" data-footer-nav>
+        <p class="m-0 text-[0.8rem] opacity-70">{{ 'footer.pages_label' | t }}</p>
+        <div class="font-primary flex flex-wrap justify-center gap-6 font-semibold [&_a]:no-underline">
+          {% for link in section.settings.menu.links %}
+            <a href="{{ link.url }}" class="hover-rollup leading-[1.3] h-[1.3em]">
+              <span class="hover-rollup__item">{{ link.title }}</span>
+              <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ link.title }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </nav>
     {% endif %}
+
+    <div class="flex items-center justify-between gap-4 text-left">
+      <div class="flex gap-2 shrink-0" data-footer-socials>
+        {% content_for 'blocks' %}
+      </div>
+
+      <p class="m-0 text-[0.8rem] opacity-85 text-right">
+        &copy;
+        {{ 'now' | date: '%Y' }}
+        {{ shop.name | link_to: routes.root_url }}, {{ powered_by_link }}
+      </p>
+    </div>
   </div>
 </footer>
 
-{% stylesheet %}
-  footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-  }
-  footer a {
-    text-decoration: none;
-    color: var(--color-foreground);
-  }
-  footer .footer__links,
-  footer .footer__payment {
-    display: flex;
-    gap: 1rem;
-  }
-{% endstylesheet %}
+{% javascript %}
+  (function () {
+    var clocks = document.querySelectorAll('[data-footer-clock]');
+    if (!clocks.length) return;
+
+    function pad(value) {
+      return String(value).padStart(2, '0');
+    }
+
+    function tick(clock) {
+      var now = new Date();
+      clock.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
+    }
+
+    clocks.forEach(function (clock) {
+      tick(clock);
+      setInterval(function () {
+        tick(clock);
+      }, 1000);
+    });
+  })();
+
+  (function () {
+    function init() {
+      var helpers = window.ArthehopeAnims;
+      var footer = document.querySelector('[data-footer]');
+      if (!footer || !window.gsap || !window.ScrollTrigger) return;
+
+      if (helpers.prefersReduced()) return;
+
+      window.gsap.registerPlugin(window.ScrollTrigger);
+
+      function props(extra) {
+        var p = { trigger: footer, start: 'top 75%' };
+        if (extra) {
+          for (var k in extra) p[k] = extra[k];
+        }
+        return p;
+      }
+
+      /* Big heading rises word by word. */
+      var words = helpers.splitWords(footer.querySelector('[data-footer-heading]'));
+      if (words.length) {
+        window.gsap.from(words, {
+          yPercent: 110,
+          duration: 0.65,
+          stagger: 0.06,
+          ease: 'power3.out',
+          scrollTrigger: props()
+        });
+      }
+
+      /* CTA pops in. */
+      var cta = footer.querySelector('[data-magnetic]');
+      if (cta) {
+        window.gsap.from(cta, {
+          scale: 0,
+          duration: 0.6,
+          ease: 'back.out(1.7)',
+          scrollTrigger: props({ start: 'top 70%' })
+        });
+      }
+
+      /* Nav links cascade. */
+      var navLinks = footer.querySelectorAll('[data-footer-nav] a');
+      if (navLinks.length) {
+        window.gsap.from(navLinks, {
+          y: 20,
+          autoAlpha: 0,
+          duration: 0.45,
+          stagger: 0.07,
+          ease: 'power2.out',
+          clearProps: 'all',
+          scrollTrigger: props({ start: 'top 65%' })
+        });
+      }
+
+      /* Social badges pop in. */
+      var socials = footer.querySelectorAll('[data-footer-socials] > *');
+      if (socials.length) {
+        window.gsap.from(socials, {
+          scale: 0,
+          transformOrigin: 'center',
+          duration: 0.5,
+          stagger: 0.09,
+          ease: 'back.out(1.8)',
+          clearProps: 'all',
+          scrollTrigger: props({ start: 'top 60%' })
+        });
+      }
+    }
+
+    if (window.ArthehopeAnims) {
+      window.ArthehopeAnims.whenGsap(init);
+    }
+  })();
+{% endjavascript %}
 
 {% schema %}
 {
   "name": "t:general.footer",
+  "blocks": [{ "type": "social-link" }],
   "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow_text",
+      "label": "t:labels.eyebrow_text",
+      "default": "Let's build something great together."
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "t:labels.heading",
+      "default": "Got something you want me to draw? Drop it here!"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:labels.button_label",
+      "default": "Let's work together"
+    },
+    {
+      "type": "url",
+      "id": "button_url",
+      "label": "t:labels.button_url"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_clock",
+      "label": "t:labels.show_clock",
+      "default": true
+    },
     {
       "type": "link_list",
       "id": "menu",
-      "label": "t:labels.menu"
+      "label": "t:labels.menu",
+      "default": "main-menu"
     },
     {
       "type": "checkbox",

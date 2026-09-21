@@ -4,6 +4,25 @@
 
 Use the [Shopify AI Toolkit](https://shopify.dev/docs/apps/build/ai-toolkit) for all Shopify API and platform work. If missing, install it in the agent host per that page (or `npx skills add Shopify/shopify-ai-toolkit --list` for skill-compatible hosts).
 
+## Theme Color Palette
+
+**Always use this palette for default values in Liquid files. Reference images may show different colors — always follow this palette instead.**
+
+| Role | Hex | RGB | Usage |
+|------|-----|-----|-------|
+| Background | `#F0F0F0` | `rgb(240, 240, 240)` | Card backgrounds, light surfaces |
+| Primary | `#FE5E0F` | `rgb(252, 94, 15)` | Badge bg, accent color, stat values, interactive elements |
+| Secondary | `#6B6B6B` | `rgb(107, 107, 107)` | Muted text, helper text, secondary info |
+| Foreground | `#111111` | `rgb(17, 17, 17)` | Primary text, borders, darkest elements |
+
+- **Checkerboard**: white + `#F0F0F0` (light grey)
+- **Cards/surfaces**: `#FFFFFF` (white) — high contrast on light grey bg
+- **Text on dark**: `#FFFFFF` (white)
+- **Primary text**: `#111111` (dark)
+- **Accent**: `#FE5E0F` (orange)
+
+Palette reference file: `assets/color.png`
+
 ## Theme Architecture
 
 **Key principles: focus on generating snippets, blocks, and sections; users may create templates using the theme editor**

@@ -1,0 +1,30 @@
+{
+  "status": "PASS",
+  "threshold": 0.5,
+  "results": {
+    "desktop": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 0,
+      "diffPercentage": 0
+    },
+    "large-desktop": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 0,
+      "diffPercentage": 0
+    },
+    "mobile": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 0,
+      "diffPercentage": 0
+    },
+    "tablet": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 0,
+      "diffPercentage": 0
+    }
+  }
+}

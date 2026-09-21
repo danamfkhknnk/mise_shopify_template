@@ -1,0 +1,50 @@
+{% doc %}
+  Renders a single gallery showcase photo. Falls back to the hero image
+  as a dummy until a merchant picks an image.
+
+  @param {image} [image] - Gallery photo
+
+  @example
+  {% content_for 'block', type: 'gallery-image', id: 'gallery-1' %}
+{% enddoc %}
+
+{% liquid
+  assign hero_entry = metaobjects.hero.values | first
+  assign card_image = block.settings.image | default: hero_entry.image
+%}
+
+<div
+  class="border-2 border-foreground rounded-md overflow-hidden bg-background odd:aspect-[3/4] even:aspect-square"
+  {{ block.shopify_attributes }}
+>
+  {% if card_image %}
+    {{
+      card_image
+      | image_url: width: 800
+      | image_tag:
+        class: 'block w-full h-full object-cover',
+        loading: 'lazy',
+        sizes: '(min-width: 1024px) 25vw, (min-width: 768px) 40vw, 80vw'
+    }}
+  {% else %}
+    <div class="w-full h-full bg-muted"></div>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Gallery image",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Gallery image"
+    }
+  ]
+}
+{% endschema %}

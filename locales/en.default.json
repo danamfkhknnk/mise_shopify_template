@@ -27,6 +27,12 @@
       "title": "Login"
     }
   },
+  "footer": {
+    "pages_label": "/Pages"
+  },
+  "header": {
+    "menu": "Menu"
+  },
   "collections": {
     "title": "Collections"
   },
@@ -41,6 +47,9 @@
     "title": "This shop is private",
     "password": "Password",
     "enter": "Enter"
+  },
+  "general": {
+    "white_card": "White Card"
   },
   "search": {
     "title": "Search",

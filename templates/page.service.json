@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "service": {
+      "type": "service",
+      "settings": {}
+    }
+  },
+  "order": ["service"]
+}

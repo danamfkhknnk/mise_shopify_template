@@ -30,14 +30,111 @@
     {% # Social, title, etc. %}
     {% render 'meta-tags' %}
 
+    {% # GSAP + ScrollTrigger for theme animations (self-hosted, deferred) %}
+    <script src="{{ 'gsap.min.js' | asset_url }}" defer></script>
+    <script src="{{ 'scrolltrigger.min.js' | asset_url }}" defer></script>
+
     {{ content_for_header }}
   </head>
 
-  <body>
+  <body
+    class="bg-white bg-[length:60px_60px] bg-[position:0_0,0_30px,30px_-30px,-30px_0] bg-[image:linear-gradient(45deg,#F0F0F0_25%,transparent_25%),linear-gradient(-45deg,#F0F0F0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#F0F0F0_75%),linear-gradient(-45deg,transparent_75%,#F0F0F0_75%)]"
+  >
     {% sections 'header-group' %}
 
     {{ content_for_layout }}
 
     {% sections 'footer-group' %}
+
+    <script>
+      /* Shared animation helpers. Section scripts wait for GSAP via
+         ArthehopeAnims.whenGsap(), so load order vs. the deferred
+         CDN above (or a blocked CDN) never breaks the page. */
+      window.ArthehopeAnims = (function () {
+        function prefersReduced() {
+          return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        }
+
+        function whenGsap(callback, timeout) {
+          timeout = timeout || 6000;
+          if (window.gsap) {
+            callback();
+            return;
+          }
+          var waited = 0;
+          var timer = setInterval(function () {
+            waited += 50;
+            if (window.gsap) {
+              clearInterval(timer);
+              callback();
+            } else if (waited >= timeout) {
+              clearInterval(timer);
+            }
+          }, 50);
+        }
+
+        /* Wraps each word in a mask so headings can rise up line by line.
+           Uses textContent only, so merchant input stays escaped. */
+        function splitWords(el) {
+          if (!el || el.dataset.wordsSplit === 'true') return [];
+          var text = el.textContent.trim().replace(/\s+/g, ' ');
+          if (!text) return [];
+          el.setAttribute('aria-label', text);
+          el.innerHTML = text
+            .split(' ')
+            .map(function (w) {
+              return '<span class="inline-block overflow-hidden align-bottom"><span class="inline-block" data-word>' + w + '</span></span>';
+            })
+            .join(' ');
+          el.dataset.wordsSplit = 'true';
+          return el.querySelectorAll('[data-word]');
+        }
+
+        /* Magnetic pull on hover for CTA buttons (fine pointers only).
+           Auto-initialises every [data-magnetic] element on the page. */
+        var magneticStrength = 8;
+        function magnetic(selector, strength) {
+          if (prefersReduced() || !window.gsap || window.matchMedia('(hover: none)').matches) return;
+          strength = strength || magneticStrength;
+          document.querySelectorAll(selector).forEach(function (el) {
+            if (el._magneticInit) return;
+            el._magneticInit = true;
+            el.addEventListener('mousemove', function (e) {
+              var r = el.getBoundingClientRect();
+              window.gsap.to(el, {
+                x: ((e.clientX - r.left - r.width / 2) / (r.width / 2)) * strength,
+                y: ((e.clientY - r.top - r.height / 2) / (r.height / 2)) * strength,
+                duration: 0.3,
+                ease: 'power2.out',
+                overwrite: 'auto'
+              });
+            });
+            el.addEventListener('mouseleave', function () {
+              window.gsap.to(el, { x: 0, y: 0, duration: 0.6, ease: 'elastic.out(1, 0.4)', overwrite: 'auto' });
+            });
+          });
+        }
+
+        function registerScrollTrigger() {
+          if (window.gsap && window.ScrollTrigger) window.gsap.registerPlugin(window.ScrollTrigger);
+        }
+
+        document.addEventListener('shopify:section:load', function () {
+          if (window.ScrollTrigger) window.ScrollTrigger.refresh();
+          magnetic('[data-magnetic]');
+        });
+
+        /* Auto-init magnetic on all [data-magnetic] elements. */
+        whenGsap(function () { magnetic('[data-magnetic]'); });
+
+        return {
+          prefersReduced: prefersReduced,
+          whenGsap: whenGsap,
+          splitWords: splitWords,
+          magnetic: magnetic,
+          registerScrollTrigger: registerScrollTrigger
+        };
+      })();
+    </script>
   </body>
 </html>

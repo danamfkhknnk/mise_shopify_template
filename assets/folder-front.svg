@@ -1,0 +1,13 @@
+<svg viewBox="0 0 160 112" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Folder front">
+  <defs>
+    <clipPath id="folderFrontClip">
+      <rect x="5" y="28" width="150" height="78" rx="12"/>
+    </clipPath>
+  </defs>
+  <!-- folder front body : 2-tone base -->
+  <rect x="5" y="28" width="150" height="78" rx="12" fill="currentColor"/>
+  <!-- left light tone with curved right edge, clipped to front body -->
+  <g clip-path="url(#folderFrontClip)">
+    <path d="M5 28 H68 C68 52 60 80 42 106 H5 V28 Z" fill="#FFFFFF" opacity="0.38"/>
+  </g>
+</svg>
