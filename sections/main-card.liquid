@@ -25,7 +25,7 @@
 
           {% if section.settings.about_cta_label != blank %}
             <a
-              href="{{ section.settings.about_cta_url | default: '#' }}"
+              href="{{ section.settings.about_cta_url | default: '/pages/service' }}"
               data-magnetic
               class="font-primary inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 mt-8 no-underline"
             >
@@ -755,7 +755,7 @@
       "type": "text",
       "id": "about_cta_label",
       "label": "Button label",
-      "default": "Come Say Hi"
+      "default": "View My Service"
     },
     {
       "type": "url",

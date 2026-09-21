@@ -1,0 +1,9 @@
+{
+  "sections": {
+    "main": {
+      "type": "page-content",
+      "settings": {}
+    }
+  },
+  "order": ["main"]
+}

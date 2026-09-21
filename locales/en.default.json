@@ -16,8 +16,36 @@
   "cart": {
     "checkout": "Checkout",
     "title": "Cart",
-    "update": "Update",
-    "remove": "Remove"
+    "update": "Update cart",
+    "remove": "Remove",
+    "empty_heading": "Your cart is empty",
+    "empty_description": "Looks like you haven't added anything yet.",
+    "continue_shopping": "Continue shopping",
+    "product": "Product",
+    "price": "Price",
+    "quantity": "Quantity",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "taxes_note": "Taxes and shipping calculated at checkout."
+  },
+  "contact": {
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "message": "Message",
+      "send": "Send message",
+      "post_success": "Thanks for reaching out! We'll get back to you soon.",
+      "error_heading": "Please fix the following:"
+    }
+  },
+  "faq": {
+    "badge": "FAQ",
+    "heading": "Frequently asked questions",
+    "description": "Everything you need to know before reaching out."
+  },
+  "legal": {
+    "badge": "Legal"
   },
   "customers": {
     "login": {
@@ -49,7 +77,20 @@
     "enter": "Enter"
   },
   "general": {
+    "all": "All",
     "white_card": "White Card"
+  },
+  "products": {
+    "product": {
+      "from": "Start from",
+      "view_detail": "View Detail",
+      "add_to_cart": "Add to cart",
+      "sold_out": "Sold out",
+      "unavailable": "Unavailable",
+      "quantity": "Quantity",
+      "description": "Description",
+      "sku": "SKU"
+    }
   },
   "search": {
     "title": "Search",

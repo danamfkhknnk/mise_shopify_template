@@ -40,6 +40,82 @@
   <body
     class="bg-white bg-[length:60px_60px] bg-[position:0_0,0_30px,30px_-30px,-30px_0] bg-[image:linear-gradient(45deg,#F0F0F0_25%,transparent_25%),linear-gradient(-45deg,#F0F0F0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#F0F0F0_75%),linear-gradient(-45deg,transparent_75%,#F0F0F0_75%)]"
   >
+    <div class="page-transition" data-page-transition aria-hidden="true"></div>
+
+    <script>
+      /* Runs immediately (not deferred) so the fade clears as soon as
+         possible after paint, and so link clicks are intercepted before
+         the browser can navigate away. Kept short on purpose — pages
+         have their own entrance animations, and a long transition here
+         would eat into (or hide) those. */
+      (function () {
+        var overlay = document.querySelector('[data-page-transition]');
+        if (!overlay) return;
+
+        var CLOSE_DURATION = 200;
+        var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function open() {
+          if (reduceMotion) {
+            overlay.classList.add('page-transition--open');
+            return;
+          }
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              overlay.classList.add('page-transition--open');
+            });
+          });
+        }
+
+        function close(callback) {
+          if (reduceMotion) {
+            callback();
+            return;
+          }
+          overlay.classList.remove('page-transition--open');
+          setTimeout(callback, CLOSE_DURATION);
+        }
+
+        open();
+
+        /* Pages restored from the back/forward cache skip reloading
+           scripts, so the overlay would otherwise stay in whatever
+           state it was left in when the user navigated away. */
+        window.addEventListener('pageshow', function (event) {
+          if (event.persisted) open();
+        });
+
+        document.addEventListener('click', function (event) {
+          if (event.defaultPrevented || event.button !== 0) return;
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+          var link = event.target.closest('a[href]');
+          if (!link) return;
+          if (link.target && link.target !== '_self') return;
+          if (link.hasAttribute('download')) return;
+
+          var url;
+          try {
+            url = new URL(link.href, window.location.href);
+          } catch (e) {
+            return;
+          }
+
+          if (url.origin !== window.location.origin) return;
+
+          var isSamePageAnchor = url.pathname === window.location.pathname
+            && url.search === window.location.search
+            && url.hash !== '';
+          if (isSamePageAnchor) return;
+
+          event.preventDefault();
+          close(function () {
+            window.location.href = url.href;
+          });
+        });
+      })();
+    </script>
+
     {% sections 'header-group' %}
 
     {{ content_for_layout }}

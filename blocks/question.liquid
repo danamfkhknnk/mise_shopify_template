@@ -20,7 +20,7 @@
     data-faq-trigger
   >
     <span class="m-0 text-base font-bold uppercase tracking-[0.01em] font-primary max-sm:text-[0.85rem]">{{ block.settings.question }}</span>
-    <span class="shrink-0 w-8 h-8 rounded-full bg-accent text-white border-2 border-foreground inline-flex items-center justify-center transition-transform duration-300 {% if block.settings.open_by_default %}rotate-[135deg]{% endif %}" aria-hidden="true">
+    <span data-faq-icon class="shrink-0 w-8 h-8 rounded-full bg-accent text-white border-2 border-foreground inline-flex items-center justify-center transition-transform duration-300 {% if block.settings.open_by_default %}rotate-[135deg]{% endif %}" aria-hidden="true">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
         <line x1="12" y1="5" x2="12" y2="19"/>
         <line x1="5" y1="12" x2="19" y2="12"/>

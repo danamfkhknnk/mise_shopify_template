@@ -174,3 +174,28 @@ a:hover > .hover-rollup .hover-rollup__item,
 button:hover > .hover-rollup .hover-rollup__item {
   transform: translateY(-100%);
 }
+
+/**
+ * Page transition: a quick, flat dim on every navigation. Kept short
+ * and simple on purpose so it never outlasts (or delays) a page's own
+ * entrance animations. See the script in layout/theme.liquid.
+ */
+.page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-color: var(--color-foreground);
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.page-transition--open {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition {
+    transition: none;
+  }
+}

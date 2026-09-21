@@ -1,0 +1,44 @@
+{
+  "sections": {
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "question-1": {
+          "type": "question",
+          "settings": {
+            "question": "How long does a commission take?",
+            "answer": "Turnaround usually takes 1-3 weeks depending on complexity and current queue length. You'll get updates along the way.",
+            "open_by_default": true
+          }
+        },
+        "question-2": {
+          "type": "question",
+          "settings": {
+            "question": "What payment methods do you accept?",
+            "answer": "All major cards and PayPal are accepted at checkout, processed securely through Shopify.",
+            "open_by_default": false
+          }
+        },
+        "question-3": {
+          "type": "question",
+          "settings": {
+            "question": "Can I request revisions?",
+            "answer": "Yes, each commission includes a set number of revision rounds so the final piece matches your vision.",
+            "open_by_default": false
+          }
+        },
+        "question-4": {
+          "type": "question",
+          "settings": {
+            "question": "Do you offer commercial usage rights?",
+            "answer": "Commercial licensing is available as an add-on. Reach out before ordering if you need it for a business or product.",
+            "open_by_default": false
+          }
+        }
+      },
+      "block_order": ["question-1", "question-2", "question-3", "question-4"],
+      "settings": {}
+    }
+  },
+  "order": ["faq"]
+}

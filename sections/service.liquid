@@ -1,7 +1,13 @@
 {% liquid
-  if section.settings.collection != blank
-    assign product_collection = collections[section.settings.collection]
-  endif
+  assign product_type_downcase = section.settings.product_type | downcase
+  assign product_count = 0
+
+  for product in collections.all.products
+    assign ptype = product.type | downcase
+    if ptype == product_type_downcase
+      assign product_count = product_count | plus: 1
+    endif
+  endfor
 %}
 
 <div class="full-width w-full" data-service>
@@ -25,96 +31,376 @@
         {% endif %}
       </div>
 
-      {% if product_collection != blank and product_collection.products.size > 0 %}
+      {% if product_count > 0 %}
 
-        {% comment %} Tag filter bubbles {% endcomment %}
-        {% if product_collection.all_tags.size > 0 %}
+        {% comment %} Tag filter bubbles — collect unique tags from filtered products {% endcomment %}
+        {% assign tags_collected = '' %}
+        {% for product in collections.all.products %}
+          {% assign ptype = product.type | downcase %}
+          {% if ptype == product_type_downcase %}
+            {% for tag in product.tags %}
+              {% assign tag_lower = tag | strip | downcase %}
+              {% unless tags_collected contains tag_lower %}
+                {% capture tags_collected %}{{ tags_collected }}{{ tag_lower }}|{% endcapture %}
+              {% endunless %}
+            {% endfor %}
+          {% endif %}
+        {% endfor %}
+        {% assign tags_array = tags_collected | split: '|' %}
+        {% if tags_array.size > 1 %}
           <div data-service-filters class="mb-10 flex flex-nowrap gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden justify-center">
             <button
               data-filter="all"
-              class="service-filter service-filter--active shrink-0 px-5 py-2 rounded-full font-primary text-sm font-bold uppercase tracking-wide border-2 border-foreground cursor-pointer"
+              class="service-filter service-filter--active shrink-0 px-5 py-2 rounded-full font-primary text-sm font-bold uppercase tracking-wide cursor-pointer"
+              style="background: var(--color-accent); color: white; border: 1px solid rgba(45,42,38,0.06);"
             >
-              {{ 'general.all' | t | default: 'All' }}
+              All
             </button>
-            {% for tag in product_collection.all_tags %}
-              <button
-                data-filter="{{ tag | strip | handleize }}"
-                class="service-filter shrink-0 px-5 py-2 rounded-full font-primary text-sm font-bold uppercase tracking-wide border-2 border-foreground bg-white text-muted cursor-pointer"
-              >
-                {{ tag }}
-              </button>
+            {% for tag in tags_array %}
+              {% if tag != blank %}
+                <button
+                  data-filter="{{ tag }}"
+                  class="service-filter shrink-0 px-5 py-2 rounded-full font-primary text-sm font-bold uppercase tracking-wide cursor-pointer"
+                  style="background: rgba(255,255,255,0.6); color: var(--color-muted); border: 1px solid rgba(45,42,38,0.06);"
+                >
+                  {{ tag }}
+                </button>
+              {% endif %}
             {% endfor %}
           </div>
         {% endif %}
 
-        {% comment %} Masonry product grid {% endcomment %}
+        {% comment %} Collection Products — Pinterest-style masonry {% endcomment %}
         <div data-service-grid class="relative">
-          {% for product in product_collection.products %}
-            {% assign featured_image = product.featured_image %}
-            {% assign image_ratio = featured_image.aspect_ratio | default: 1.0 %}
+          {% for product in collections.all.products %}
+            {% assign ptype = product.type | downcase %}
+            {% if ptype == product_type_downcase %}
+              {% assign featured_image = product.featured_image %}
+              {% assign image_ratio = featured_image.aspect_ratio | default: 1.0 %}
 
-            {% capture product_tag_list %}{% for tag in product.tags %}{{ tag | strip | handleize }}|{% endfor %}{% endcapture %}
+              {% capture product_tag_list %}{% for tag in product.tags %}{{ tag | strip | downcase }}|{% endfor %}{% endcapture %}
 
-            <a
-              data-service-card
-              data-tags="{{ product_tag_list }}"
-              data-ratio="{{ image_ratio }}"
-              href="{{ product.url }}"
-              class="service-card absolute top-0 left-0 block overflow-hidden rounded-md no-underline text-inherit border-2 border-foreground bg-white"
-            >
-              <div class="overflow-hidden">
-                {% if product.images.size > 1 and section.settings.show_slideshow %}
-                  <div data-slideshow class="relative w-full" style="aspect-ratio: {{ featured_image.width }} / {{ featured_image.height }};">
-                    {% for image in product.images %}
-                      {% liquid
-                        assign slide_class = 'product-img absolute inset-0 h-full w-full object-cover'
-                        if forloop.first
-                          assign slide_class = slide_class | append: ' is-active'
-                        endif
-                      %}
-                      {{ image | image_url: width: 800 | image_tag: class: slide_class, loading: 'lazy', widths: '400,600,800', sizes: '(min-width: 1024px) 25vw, (min-width: 768px) 40vw, 80vw' }}
+              <a
+                data-service-card
+                data-tags="{{ product_tag_list }}"
+                data-ratio="{{ image_ratio }}"
+                href="{{ product.url }}"
+                class="service-card group absolute top-0 left-0 block overflow-hidden rounded-md no-underline text-inherit border-2 border-foreground bg-white cursor-none"
+                style="opacity: 0;"
+              >
+                <div
+                  data-service-card-cursor
+                  class="pointer-events-none absolute z-10 flex h-8 w-20 -translate-x-1/2 -translate-y-1/2 scale-75 items-center justify-center overflow-hidden rounded-full border-2 border-foreground bg-white opacity-0 transition-[opacity,transform] duration-200 ease-out group-hover:scale-100 group-hover:opacity-100"
+                  style="left: var(--service-cursor-x, -999px); top: var(--service-cursor-y, -999px);"
+                  aria-hidden="true"
+                >
+                  <div class="flex w-max items-center gap-3 whitespace-nowrap font-primary text-xs font-bold uppercase text-accent animate-hero-marquee [animation-duration:6s] motion-reduce:animate-none">
+                    {% for i in (1..8) %}
+                      <span>{{ 'products.product.view_detail' | t | default: 'View more' }}</span>
+                      <span aria-hidden="true">&middot;</span>
                     {% endfor %}
                   </div>
-                {% elsif featured_image %}
-                  {{ featured_image | image_url: width: 800 | image_tag: class: 'product-img block w-full', loading: 'lazy', widths: '400,600,800', sizes: '(min-width: 1024px) 25vw, (min-width: 768px) 40vw, 80vw' }}
-                {% else %}
-                  <div class="flex aspect-square w-full items-center justify-center bg-background">
-                    <svg class="w-16 h-16 text-muted opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                  </div>
-                {% endif %}
-              </div>
-
-              <div class="p-5">
-                {% if product.tags.size > 0 %}
-                  <p class="m-0 mb-2 flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wide text-accent">
-                    {% for tag in product.tags %}<span>#{{ tag }}</span>{% endfor %}
-                  </p>
-                {% endif %}
-
-                <h3 class="font-primary m-0 text-base font-bold uppercase tracking-wide text-foreground">{{ product.title }}</h3>
-
-                <div class="flex items-center justify-between gap-3 mt-2">
-                  <span class="font-primary text-sm font-bold text-foreground">
-                    {% if product.price_varies %}
-                      {{ 'products.product.from' | t }} {{ product.price_min | money }}
-                    {% else %}
-                      {{ product.price | money }}
-                    {% endif %}
-                  </span>
-                  <span class="view-link inline-flex items-center gap-1.5 font-primary text-xs font-bold uppercase text-accent">
-                    {{ 'products.product.view_detail' | t | default: 'View' }}
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <line x1="5" y1="12" x2="19" y2="12"/>
-                      <polyline points="12 5 19 12 12 19"/>
-                    </svg>
-                  </span>
                 </div>
-              </div>
-            </a>
+
+                <div class="relative overflow-hidden">
+                  {% if product.images.size > 1 %}
+                    <div data-slideshow class="relative w-full" style="aspect-ratio: {{ featured_image.width }} / {{ featured_image.height }};">
+                      {% for image in product.images %}
+                        <img
+                          data-slide
+                          src="{{ image | image_url: width: 800 }}"
+                          alt="{{ product.title }}"
+                          class="product-img product-slide absolute inset-0 h-full w-full object-cover{% if forloop.first %} is-active{% endif %}"
+                          loading="lazy"
+                          width="{{ image.width }}"
+                          height="{{ image.height }}"
+                        >
+                      {% endfor %}
+                    </div>
+                  {% elsif featured_image %}
+                    <img
+                      src="{{ featured_image | image_url: width: 800 }}"
+                      alt="{{ product.title }}"
+                      class="product-img block h-auto w-full"
+                      loading="lazy"
+                      width="{{ featured_image.width }}"
+                      height="{{ featured_image.height }}"
+                    >
+                  {% else %}
+                    <div class="flex aspect-square w-full items-center justify-center bg-background">
+                      <svg class="w-16 h-16 text-muted opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      </svg>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="p-5">
+                  {% if product.tags.size > 0 %}
+                    <p class="m-0 mb-2 flex flex-wrap gap-2 text-xs font-bold uppercase tracking-wide text-accent">
+                      {% for tag in product.tags %}<span>#{{ tag }}</span>{% endfor %}
+                    </p>
+                  {% endif %}
+
+                  <h3 class="font-primary m-0 text-base font-bold uppercase tracking-wide text-foreground">{{ product.title }}</h3>
+
+                  <div class="flex items-center justify-between gap-3 mt-2">
+                    <span class="font-primary text-sm font-bold text-foreground">
+                      {% if product.price_varies %}
+                        {{ 'products.product.from' | t }} <span class="text-accent">{{ product.price_min | money }}</span>
+                      {% else %}
+                        {{ product.price | money }}
+                      {% endif %}
+                    </span>
+                    
+                  </div>
+                </div>
+              </a>
+            {% endif %}
           {% endfor %}
         </div>
+
+        <script>
+          (function () {
+            var section = document.currentScript.closest('[data-service]');
+            if (!section) return;
+
+            /* ========== Masonry layout ========== */
+            var GRID_GAP = 24;
+            var grid = section.querySelector('[data-service-grid]');
+            var allCards = Array.prototype.slice.call(section.querySelectorAll('[data-service-card]'));
+
+            /* ========== Custom "view more" cursor follower ========== */
+            allCards.forEach(function (card) {
+              card.addEventListener('mousemove', function (e) {
+                var rect = card.getBoundingClientRect();
+                card.style.setProperty('--service-cursor-x', (e.clientX - rect.left) + 'px');
+                card.style.setProperty('--service-cursor-y', (e.clientY - rect.top) + 'px');
+              });
+            });
+
+            var ratiosLookSimilar = function (a, b) {
+              if (!a || !b) return false;
+              return Math.abs(a - b) / Math.max(a, b) < 0.15;
+            };
+
+            var getColumnCount = function (width) {
+              if (width < 640) return 1;
+              if (width < 1024) return 2;
+              return 3;
+            };
+
+            function layoutMasonry(cards) {
+              if (!grid || !cards.length) return;
+              var containerWidth = grid.clientWidth;
+              var columnCount = getColumnCount(window.innerWidth);
+              var columnWidth = (containerWidth - GRID_GAP * (columnCount - 1)) / columnCount;
+
+              cards.forEach(function (card) { card.style.width = columnWidth + 'px'; });
+
+              var columnHeights = new Array(columnCount).fill(0);
+              var columnLastRatio = new Array(columnCount).fill(null);
+
+              cards.forEach(function (card) {
+                var ratio = parseFloat(card.dataset.ratio) || 1;
+
+                var targetCol = 0;
+                for (var c = 1; c < columnCount; c++) {
+                  if (columnHeights[c] < columnHeights[targetCol]) targetCol = c;
+                }
+
+                if (ratiosLookSimilar(ratio, columnLastRatio[targetCol])) {
+                  var altCol = -1;
+                  for (var c2 = 0; c2 < columnCount; c2++) {
+                    if (c2 === targetCol || ratiosLookSimilar(ratio, columnLastRatio[c2])) continue;
+                    if (altCol === -1 || columnHeights[c2] < columnHeights[altCol]) altCol = c2;
+                  }
+                  if (altCol !== -1 && (columnHeights[altCol] - columnHeights[targetCol]) < columnWidth) {
+                    targetCol = altCol;
+                  }
+                }
+
+                var x = targetCol * (columnWidth + GRID_GAP);
+                var y = columnHeights[targetCol];
+                var itemHeight = card.offsetHeight;
+
+                card.style.left = x + 'px';
+                card.style.top = y + 'px';
+
+                columnHeights[targetCol] = y + itemHeight + GRID_GAP;
+                columnLastRatio[targetCol] = ratio;
+              });
+
+              grid.style.height = (Math.max.apply(Math, columnHeights) - GRID_GAP) + 'px';
+            }
+
+            var getVisibleCards = function () {
+              return allCards.filter(function (card) { return card.style.display !== 'none'; });
+            };
+
+            /* ========== Scatter-from-center entrance animation ========== */
+            function scatterEntrance() {
+              if (!grid || !allCards.length) return;
+
+              var hasGSAP = typeof gsap !== 'undefined';
+
+              /* Step 1: compute masonry positions (cards are opacity:0, invisible) */
+              layoutMasonry(allCards);
+
+              /* Step 2: store final positions, then move cards to center */
+              var gridRect = grid.getBoundingClientRect();
+              var gridCenterX = gridRect.left + gridRect.width / 2;
+              var gridCenterY = gridRect.top + gridRect.height / 2;
+
+              allCards.forEach(function (card) {
+                var finalLeft = parseFloat(card.style.left) || 0;
+                var finalTop = parseFloat(card.style.top) || 0;
+                card.dataset.finalLeft = finalLeft;
+                card.dataset.finalTop = finalTop;
+
+                /* Move to center of grid */
+                var cardRect = card.getBoundingClientRect();
+                var cardCenterX = cardRect.left + cardRect.width / 2;
+                var cardCenterY = cardRect.top + cardRect.height / 2;
+
+                var offsetX = gridCenterX - cardCenterX;
+                var offsetY = gridCenterY - cardCenterY;
+
+                card.dataset.offsetX = offsetX;
+                card.dataset.offsetY = offsetY;
+
+                /* Start at center */
+                card.style.left = (finalLeft + offsetX) + 'px';
+                card.style.top = (finalTop + offsetY) + 'px';
+              });
+
+              /* Step 3: animate to final positions */
+              if (hasGSAP) {
+                allCards.forEach(function (card, i) {
+                  gsap.to(card, {
+                    left: card.dataset.finalLeft + 'px',
+                    top: card.dataset.finalTop + 'px',
+                    opacity: 1,
+                    scale: 1,
+                    rotation: 0,
+                    duration: 0.8,
+                    delay: i * 0.08,
+                    ease: 'back.out(1.4)'
+                  });
+                });
+              } else {
+                /* Fallback without GSAP */
+                allCards.forEach(function (card, i) {
+                  setTimeout(function () {
+                    card.style.left = card.dataset.finalLeft + 'px';
+                    card.style.top = card.dataset.finalTop + 'px';
+                    card.style.opacity = '1';
+                    card.style.transition = 'all 0.6s ease';
+                  }, i * 80);
+                });
+              }
+            }
+
+            /* Run scatter entrance after images load (or after timeout) */
+            function waitForImagesThenScatter() {
+              var images = grid ? grid.querySelectorAll('img') : [];
+              var loaded = 0;
+              var total = images.length;
+
+              if (total === 0) {
+                scatterEntrance();
+                return;
+              }
+
+              function checkDone() {
+                loaded++;
+                if (loaded >= total) {
+                  scatterEntrance();
+                }
+              }
+
+              images.forEach(function (img) {
+                if (img.complete) {
+                  checkDone();
+                } else {
+                  img.addEventListener('load', checkDone);
+                  img.addEventListener('error', checkDone);
+                }
+              });
+
+              /* Fallback: run after 2s even if images haven't loaded */
+              setTimeout(function () {
+                if (loaded < total) scatterEntrance();
+              }, 2000);
+            }
+
+            waitForImagesThenScatter();
+
+            /* ========== Resize handler ========== */
+            var resizeTimer;
+            window.addEventListener('resize', function () {
+              clearTimeout(resizeTimer);
+              resizeTimer = setTimeout(function () { layoutMasonry(getVisibleCards()); }, 150);
+            });
+
+            /* ========== Slideshow crossfade ========== */
+            var slideshows = section.querySelectorAll('[data-slideshow]');
+            slideshows.forEach(function (el) {
+              var slides = Array.prototype.slice.call(el.querySelectorAll('[data-slide]'));
+              if (slides.length < 2) return;
+
+              var current = 0;
+              setInterval(function () {
+                slides[current].classList.remove('is-active');
+                current = (current + 1) % slides.length;
+                slides[current].classList.add('is-active');
+              }, 3200);
+            });
+
+            /* ========== Tag filter bubbles ========== */
+            var tabs = Array.prototype.slice.call(section.querySelectorAll('[data-filter]'));
+            var cards = Array.prototype.slice.call(section.querySelectorAll('[data-service-card]'));
+            tabs.forEach(function (tab) {
+              tab.addEventListener('click', function () {
+                var filter = tab.dataset.filter;
+
+                tabs.forEach(function (t) {
+                  t.classList.remove('service-filter--active');
+                  t.style.background = 'rgba(255,255,255,0.6)';
+                  t.style.color = 'var(--color-muted)';
+                  t.style.border = '1px solid rgba(45,42,38,0.06)';
+                });
+                tab.classList.add('service-filter--active');
+                tab.style.background = 'var(--color-accent)';
+                tab.style.color = 'white';
+                tab.style.border = 'none';
+
+                cards.forEach(function (card) {
+                  var tags = (card.dataset.tags || '').split('|');
+                  var matches = filter === 'all' || tags.indexOf(filter) !== -1;
+
+                  if (typeof gsap === 'undefined') {
+                    card.style.display = matches ? 'block' : 'none';
+                    return;
+                  }
+
+                  if (matches) {
+                    card.style.display = 'block';
+                    gsap.to(card, { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' });
+                  } else {
+                    gsap.to(card, {
+                      opacity: 0, scale: 0.95, duration: 0.3, ease: 'power2.in',
+                      onComplete: function () { card.style.display = 'none'; }
+                    });
+                  }
+                });
+
+                setTimeout(function () { layoutMasonry(getVisibleCards()); }, 320);
+              });
+            });
+
+          })();
+        </script>
 
       {% elsif section.blocks.size > 0 %}
 
@@ -147,55 +433,35 @@
 
       {% endif %}
 
-      {% comment %} CTA button {% endcomment %}
-      {% if section.settings.button_label != blank %}
-        <div class="text-center mt-12">
-          <a
-            href="{{ section.settings.button_url | default: routes.collections_url }}"
-            data-magnetic
-            class="font-primary inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 no-underline"
-          >
-            <span class="hover-rollup leading-[1.3] h-[1.3em]">
-              <span class="hover-rollup__item">{{ section.settings.button_label }}</span>
-              <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.button_label }}</span>
-            </span>
-            <span class="inline-flex shrink-0" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12"/>
-                <polyline points="12 5 19 12 12 19"/>
-              </svg>
-            </span>
-          </a>
-        </div>
-      {% endif %}
-
     </div>
   </div>
 </div>
 
-{% stylesheet %}
+<style>
   /* Card hover: lift + shadow grow */
-  .service-card {
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-                box-shadow 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  [data-service-card] {
+    transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
   }
-  .service-card:hover {
+  [data-service-card]:hover {
     transform: translateY(-6px);
     box-shadow: 4px 4px 0 var(--color-foreground);
   }
 
   /* Product image zoom on card hover */
   .product-img {
-    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
   }
-  .service-card:hover .product-img {
+  [data-service-card]:hover .product-img {
     transform: scale(1.06);
   }
 
   /* Multi-image slideshow crossfade */
   .product-slide {
     opacity: 0;
-    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .product-slide.is-active {
     opacity: 1;
@@ -203,245 +469,12 @@
 
   /* View link gap expand on hover */
   .view-link {
-    transition: gap 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: gap 0.6s cubic-bezier(0.16, 0.4, 0.3, 1), color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .service-card:hover .view-link {
-    gap: 0.75rem;
+  [data-service-card]:hover .view-link {
+    gap: 0.5rem;
   }
-
-  /* Filter tabs */
-  .service-filter {
-    transition: background 0.3s, color 0.3s, border-color 0.3s;
-  }
-  .service-filter--active {
-    background: var(--color-accent);
-    color: #fff;
-  }
-{% endstylesheet %}
-
-{% javascript %}
-  (function () {
-    var section = document.querySelector('[data-service]');
-    if (!section) return;
-
-    /* ========== Masonry layout ========== */
-    var GRID_GAP = 24;
-    var grid = section.querySelector('[data-service-grid]');
-    var allCards = grid ? Array.prototype.slice.call(grid.querySelectorAll('[data-service-card]')) : [];
-
-    function ratiosLookSimilar(a, b) {
-      if (!a || !b) return false;
-      return Math.abs(a - b) / Math.max(a, b) < 0.15;
-    }
-
-    function getColumnCount(width) {
-      if (width < 640) return 1;
-      if (width < 1024) return 2;
-      return 3;
-    }
-
-    function layoutMasonry(cards) {
-      if (!grid || !cards.length) return;
-      var containerWidth = grid.clientWidth;
-      var columnCount = getColumnCount(window.innerWidth);
-      var columnWidth = (containerWidth - GRID_GAP * (columnCount - 1)) / columnCount;
-
-      cards.forEach(function (card) { card.style.width = columnWidth + 'px'; });
-
-      var columnHeights = new Array(columnCount).fill(0);
-      var columnLastRatio = new Array(columnCount).fill(null);
-
-      cards.forEach(function (card) {
-        var ratio = parseFloat(card.dataset.ratio) || 1;
-
-        var targetCol = 0;
-        for (var c = 1; c < columnCount; c++) {
-          if (columnHeights[c] < columnHeights[targetCol]) targetCol = c;
-        }
-
-        if (ratiosLookSimilar(ratio, columnLastRatio[targetCol])) {
-          var altCol = -1;
-          for (var c2 = 0; c2 < columnCount; c2++) {
-            if (c2 === targetCol || ratiosLookSimilar(ratio, columnLastRatio[c2])) continue;
-            if (altCol === -1 || columnHeights[c2] < columnHeights[altCol]) altCol = c2;
-          }
-          if (altCol !== -1 && (columnHeights[altCol] - columnHeights[targetCol]) < columnWidth) {
-            targetCol = altCol;
-          }
-        }
-
-        var x = targetCol * (columnWidth + GRID_GAP);
-        var y = columnHeights[targetCol];
-        var itemHeight = card.offsetHeight;
-
-        card.style.left = x + 'px';
-        card.style.top = y + 'px';
-
-        columnHeights[targetCol] = y + itemHeight + GRID_GAP;
-        columnLastRatio[targetCol] = ratio;
-      });
-
-      grid.style.height = (Math.max.apply(Math, columnHeights) - GRID_GAP) + 'px';
-    }
-
-    function getVisibleCards() {
-      return allCards.filter(function (card) { return card.style.display !== 'none'; });
-    }
-
-    if (allCards.length) {
-      layoutMasonry(allCards);
-
-      var resizeTimer;
-      window.addEventListener('resize', function () {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () { layoutMasonry(getVisibleCards()); }, 150);
-      });
-    }
-
-    /* ========== Slideshow crossfade ========== */
-    var slideshows = section.querySelectorAll('[data-slideshow]');
-    slideshows.forEach(function (el) {
-      var slides = Array.prototype.slice.call(el.querySelectorAll('.product-img'));
-      if (slides.length < 2) return;
-
-      var current = 0;
-      setInterval(function () {
-        slides[current].classList.remove('is-active');
-        current = (current + 1) % slides.length;
-        slides[current].classList.add('is-active');
-      }, 3200);
-    });
-
-    /* ========== Tag filtering ========== */
-    var tabs = Array.prototype.slice.call(section.querySelectorAll('[data-filter]'));
-    var cards = allCards;
-
-    tabs.forEach(function (tab) {
-      tab.addEventListener('click', function () {
-        var filter = tab.dataset.filter;
-
-        tabs.forEach(function (t) {
-          t.classList.remove('service-filter--active');
-          t.classList.remove('bg-[var(--color-accent)]', 'text-white');
-          t.classList.add('bg-white', 'text-muted');
-        });
-        tab.classList.add('service-filter--active');
-        tab.classList.remove('bg-white', 'text-muted');
-        tab.classList.add('bg-[var(--color-accent)]', 'text-white');
-
-        cards.forEach(function (card) {
-          var tags = (card.dataset.tags || '').split('|');
-          var matches = filter === 'all' || tags.indexOf(filter) !== -1;
-
-          if (typeof gsap === 'undefined') {
-            card.style.display = matches ? 'block' : 'none';
-            return;
-          }
-
-          if (matches) {
-            card.style.display = 'block';
-            gsap.to(card, { opacity: 1, scale: 1, duration: 0.3, ease: 'power2.out' });
-          } else {
-            gsap.to(card, {
-              opacity: 0, scale: 0.95, duration: 0.3, ease: 'power2.in',
-              onComplete: function () { card.style.display = 'none'; }
-            });
-          }
-        });
-
-        setTimeout(function () { layoutMasonry(getVisibleCards()); }, 320);
-      });
-    });
-
-    /* ========== GSAP scroll animations ========== */
-    function initAnimations() {
-      var helpers = window.ArthehopeAnims;
-      if (!window.gsap) return;
-      if (helpers.prefersReduced()) return;
-
-      var hasST = !!window.ScrollTrigger;
-      if (hasST) window.gsap.registerPlugin(window.ScrollTrigger);
-
-      function scrollProps(trigger, extra) {
-        var props = { trigger: trigger, start: 'top 82%' };
-        if (extra) {
-          for (var k in extra) props[k] = extra[k];
-        }
-        return props;
-      }
-
-      /* Badge entrance */
-      var badge = section.querySelector('.about-badge');
-      if (badge && hasST) {
-        window.gsap.from(badge, {
-          scale: 0, rotation: -10, duration: 0.5, ease: 'back.out(1.7)',
-          scrollTrigger: scrollProps(badge)
-        });
-      }
-
-      /* Heading words */
-      var heading = section.querySelector('[data-service-heading]');
-      if (heading && hasST) {
-        var words = helpers.splitWords(heading);
-        if (words.length) {
-          window.gsap.from(words, {
-            yPercent: 110, duration: 0.6, stagger: 0.07, ease: 'power3.out',
-            scrollTrigger: scrollProps(heading)
-          });
-        }
-      }
-
-      /* Description */
-      var desc = section.querySelector('[data-service-desc]');
-      if (desc && hasST) {
-        window.gsap.from(desc, {
-          y: 24, autoAlpha: 0, duration: 0.5, ease: 'power3.out',
-          scrollTrigger: scrollProps(desc)
-        });
-      }
-
-      /* Filter tabs cascade */
-      var filterEls = section.querySelectorAll('[data-filter]');
-      if (filterEls.length && hasST) {
-        window.gsap.from(filterEls, {
-          x: -24, autoAlpha: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out',
-          scrollTrigger: scrollProps(section.querySelector('[data-service-filters]'))
-        });
-      }
-
-      /* Product cards batch reveal */
-      if (allCards.length && hasST) {
-        window.ScrollTrigger.batch('[data-service-card]', {
-          start: 'top 90%',
-          once: true,
-          onEnter: function (els) {
-            window.gsap.fromTo(els,
-              { y: 70, autoAlpha: 0, rotation: function () { return window.gsap.utils.random(-5, 5); } },
-              {
-                y: 0, autoAlpha: 1, rotation: 0, duration: 0.7,
-                ease: 'back.out(1.4)', stagger: 0.1,
-                clearProps: 'transform,opacity,visibility'
-              }
-            );
-          }
-        });
-      }
-
-      /* CTA button pop-in */
-      var cta = section.querySelector('[data-magnetic]');
-      if (cta && hasST) {
-        window.gsap.from(cta, {
-          scale: 0, duration: 0.6, ease: 'back.out(1.7)',
-          scrollTrigger: scrollProps(cta, { start: 'top 88%' })
-        });
-      }
-    }
-
-    if (window.ArthehopeAnims) {
-      window.ArthehopeAnims.whenGsap(initAnimations);
-    }
-  })();
-{% endjavascript %}
+</style>
 
 {% schema %}
 {
@@ -497,30 +530,16 @@
       "default": "<p>Custom artwork tailored to your vision. Every piece is crafted with care and attention to detail.</p>"
     },
     {
-      "type": "collection",
-      "id": "collection",
-      "label": "Collection"
+      "type": "text",
+      "id": "product_type",
+      "label": "Product type",
+      "default": "Digital Art"
     },
     {
       "type": "checkbox",
       "id": "show_slideshow",
       "label": "Enable image slideshow for multi-image products",
       "default": true
-    },
-    {
-      "type": "header",
-      "content": "CTA button"
-    },
-    {
-      "type": "text",
-      "id": "button_label",
-      "label": "Button label",
-      "default": "View all"
-    },
-    {
-      "type": "url",
-      "id": "button_url",
-      "label": "Button URL"
     }
   ],
   "presets": [

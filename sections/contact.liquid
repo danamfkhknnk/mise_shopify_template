@@ -1,0 +1,156 @@
+{% doc %}
+  Renders a contact page with a badge, heading, description and Shopify's
+  built-in contact form.
+
+  @example
+  {% section 'contact' %}
+{% enddoc %}
+
+<div class="full-width w-full">
+  <div class="max-w-[1400px] mx-auto px-6 py-16 md:py-24">
+    <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
+
+      <div class="text-center mb-12 md:mb-16">
+        {% render 'badge', text: section.settings.badge_text %}
+
+        {% if section.settings.heading != blank %}
+          <h1 class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase mt-4">
+            {{ section.settings.heading }}
+          </h1>
+        {% endif %}
+
+        {% if section.settings.description != blank %}
+          <div class="mt-4 text-base leading-relaxed text-accent max-w-[52ch] mx-auto [&_p]:m-0">
+            {{ section.settings.description }}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="max-w-[640px] mx-auto">
+        {% form 'contact', class: 'flex flex-col gap-5' %}
+          {% if form.posted_successfully? %}
+            <div class="rounded-md border-2 border-foreground bg-background p-4 text-sm font-bold text-foreground" role="status">
+              {{ 'contact.form.post_success' | t }}
+            </div>
+          {% endif %}
+
+          {% if form.errors %}
+            <div class="rounded-md border-2 border-foreground bg-white p-4 text-sm text-foreground" role="alert">
+              <p class="m-0 mb-2 font-primary text-xs font-bold uppercase tracking-wide">{{ 'contact.form.error_heading' | t }}</p>
+              <ul class="m-0 pl-5 list-disc">
+                {% for field in form.errors %}
+                  <li>
+                    {% if field == 'form' %}
+                      {{ form.errors.messages[field] }}
+                    {% else %}
+                      <a href="#ContactForm-{{ field }}" class="text-accent underline">
+                        {{ form.errors.translated_fields[field] }} {{ form.errors.messages[field] }}
+                      </a>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+
+          <div class="flex flex-col gap-1.5">
+            <label class="font-primary text-xs font-bold uppercase tracking-wide text-foreground" for="ContactForm-name">
+              {{ 'contact.form.name' | t }}
+            </label>
+            <input
+              type="text"
+              id="ContactForm-name"
+              name="contact[name]"
+              value="{{ form.name | default: customer.name }}"
+              autocomplete="name"
+              class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
+            >
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="font-primary text-xs font-bold uppercase tracking-wide text-foreground" for="ContactForm-email">
+              {{ 'contact.form.email' | t }} *
+            </label>
+            <input
+              type="email"
+              id="ContactForm-email"
+              name="contact[email]"
+              value="{{ form.email | default: customer.email }}"
+              autocomplete="email"
+              autocorrect="off"
+              autocapitalize="off"
+              required
+              class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
+            >
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="font-primary text-xs font-bold uppercase tracking-wide text-foreground" for="ContactForm-phone">
+              {{ 'contact.form.phone' | t }}
+            </label>
+            <input
+              type="tel"
+              id="ContactForm-phone"
+              name="contact[phone]"
+              value="{{ form.phone }}"
+              autocomplete="tel"
+              class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
+            >
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="font-primary text-xs font-bold uppercase tracking-wide text-foreground" for="ContactForm-body">
+              {{ 'contact.form.message' | t }} *
+            </label>
+            <textarea
+              id="ContactForm-body"
+              name="contact[body]"
+              rows="6"
+              required
+              class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
+            >{{ form.body }}</textarea>
+          </div>
+
+          <button
+            type="submit"
+            class="font-primary self-start inline-flex items-center justify-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 mt-2 cursor-pointer"
+          >
+            {{ 'contact.form.send' | t }}
+          </button>
+        {% endform %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Contact form",
+  "settings": [
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "Contact"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Get in touch"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description",
+      "default": "<p>Have a question or want to start a project? Send a message and I'll reply as soon as I can.</p>"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact form"
+    }
+  ]
+}
+{% endschema %}

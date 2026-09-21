@@ -2,7 +2,9 @@
   "sections": {
     "service": {
       "type": "service",
-      "settings": {}
+      "settings": {
+        "product_type": "Digital Art"
+      }
     }
   },
   "order": ["service"]

@@ -1,0 +1,78 @@
+{% doc %}
+  Renders a simple text page using the Shopify page's title and rich text
+  content. Suitable for legal pages like Terms of Service or a Privacy Policy.
+
+  @example
+  {% section 'page-content' %}
+{% enddoc %}
+
+<div class="full-width w-full">
+  <div class="max-w-[900px] mx-auto px-6 py-16 md:py-24">
+    <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
+
+      <div class="text-center mb-10">
+        {% render 'badge', text: section.settings.badge_text %}
+
+        <h1 class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase mt-4">
+          {{ page.title }}
+        </h1>
+      </div>
+
+      <div class="page-content text-base leading-relaxed text-foreground">
+        {{ page.content | default: section.settings.content }}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% stylesheet %}
+  .page-content h2,
+  .page-content h3 {
+    font-family: var(--font-primary--family);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .page-content p {
+    margin: 0 0 1rem;
+  }
+
+  .page-content ul,
+  .page-content ol {
+    margin: 0 0 1rem;
+    padding-left: 1.25rem;
+  }
+
+  .page-content a {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Page content",
+  "settings": [
+    {
+      "type": "text",
+      "id": "badge_text",
+      "label": "Badge text",
+      "default": "Legal"
+    },
+    {
+      "type": "richtext",
+      "id": "content",
+      "label": "Content",
+      "default": "<p>These terms of service govern your use of our art commission services. By commissioning us, you agree to these terms.</p><h3>Payment Terms</h3><p>Full payment is required before work begins. We accept major credit cards and PayPal.</p><h3>Revision Policy</h3><p>Each commission includes up to 3 revisions. Additional revisions may incur extra charges.</p><h3>Usage Rights</h3><p>Upon full payment, you receive a license to use the artwork for personal or commercial purposes.</p>"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Page content"
+    }
+  ]
+}
+{% endschema %}
