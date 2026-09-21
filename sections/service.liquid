@@ -19,13 +19,13 @@
         {% render 'badge', text: section.settings.badge_text %}
 
         {% if section.settings.heading != blank %}
-          <h1 data-service-heading class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase mt-4">
+          <h1 data-service-heading class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase">
             {{ section.settings.heading }}
           </h1>
         {% endif %}
 
         {% if section.settings.description != blank %}
-          <div data-service-desc class="mt-4 text-base leading-relaxed text-muted max-w-[52ch] mx-auto [&_p]:m-0">
+          <div data-service-desc class="mt-4 text-base leading-relaxed text-accent max-w-[52ch] mx-auto [&_p]:m-0">
             {{ section.settings.description }}
           </div>
         {% endif %}

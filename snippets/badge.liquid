@@ -3,16 +3,26 @@
 
   @param {string} text - The badge text
   @param {string} [css_class] - Optional additional classes
+  @param {string} [variant] - 'light' swaps to a white fill with accent text, for use on accent-colored backgrounds
 
   @example
   {% render 'badge', text: 'New' %}
   {% render 'badge', text: 'Featured', css_class: 'my-4' %}
+  {% render 'badge', text: 'Featured', variant: 'light' %}
 {% enddoc %}
 
 {% if text != blank %}
-  <div class="about-badge -rotate-6 -mb-3 inline-flex items-center justify-center rounded-md border-2 border-[var(--color-accent)] p-1 {{ css_class }}">
-    <span class="inline-flex items-center rounded-md bg-[var(--color-accent)] text-white font-primary text-xs font-bold uppercase tracking-[0.05em] px-3 py-2">
-      {{ text }}
-    </span>
-  </div>
+  {% if variant == 'light' %}
+    <div class="about-badge -rotate-6 -mb-3 inline-flex items-center justify-center rounded-md border-2 border-white p-1 {{ css_class }}">
+      <span class="inline-flex items-center rounded-md bg-white text-[var(--color-accent)] font-primary text-xs font-bold uppercase tracking-[0.05em] px-3 py-2">
+        {{ text }}
+      </span>
+    </div>
+  {% else %}
+    <div class="about-badge -rotate-6 -mb-3 inline-flex items-center justify-center rounded-md border-2 border-[var(--color-accent)] p-1 {{ css_class }}">
+      <span class="inline-flex items-center rounded-md bg-[var(--color-accent)] text-white font-primary text-xs font-bold uppercase tracking-[0.05em] px-3 py-2">
+        {{ text }}
+      </span>
+    </div>
+  {% endif %}
 {% endif %}

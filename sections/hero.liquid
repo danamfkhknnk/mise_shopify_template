@@ -1,6 +1,6 @@
 {% liquid
   assign hero_entry = metaobjects.hero.values | first
-  assign hero_image = hero_entry.image
+  assign hero_image = section.settings.image | default: hero_entry.image
 %}
 
 <div
@@ -79,6 +79,14 @@
             loading: 'eager',
             sizes: '(min-width: 1024px) 50vw, 100vw'
         }}
+      {% elsif section.settings.image_url != blank %}
+        <img
+          src="{{ section.settings.image_url }}"
+          alt="{{ section.settings.heading | escape }}"
+          class="w-full h-auto lg:h-[760px] object-cover object-top"
+          loading="eager"
+          sizes="(min-width: 1024px) 50vw, 100vw"
+        >
       {% else %}
         <div class="w-full h-[320px] lg:h-[760px] bg-muted"></div>
       {% endif %}
@@ -177,6 +185,17 @@
   "blocks": [{ "type": "avatar" }],
   "settings": [
     {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:labels.image"
+    },
+    {
+      "type": "text",
+      "id": "image_url",
+      "label": "Image URL (used when no image is picked above)",
+      "default": "https://cdn.shopify.com/s/files/1/0727/6055/7738/files/image01.png"
+    },
+    {
       "type": "text",
       "id": "badge_text",
       "label": "t:labels.eyebrow_text",
@@ -221,7 +240,7 @@
       "type": "text",
       "id": "marquee_text",
       "label": "t:labels.marquee_text",
-      "default": "Welcome to my portfolio!"
+      "default": "WELCOME TO MY LITTLE CORNER!"
     }
   ],
   "presets": [{ "name": "t:general.hero" }]

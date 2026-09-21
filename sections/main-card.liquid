@@ -1,6 +1,8 @@
 {% liquid
   assign hero_entry = metaobjects.hero.values | first
-  assign about_image = hero_entry.image
+  assign about_image = section.settings.about_image | default: hero_entry.image
+  assign gallery_entries = metaobjects.gallery.values
+  assign gallery_types = gallery_entries | map: 'type' | uniq
 %}
 
 <div class="main-card full-width w-full">
@@ -45,15 +47,23 @@
 
         <div class="about-orbit relative mx-auto w-full max-w-[640px]">
           <div class="border-2 border-foreground overflow-hidden h-[426px]" data-scroll-reveal>
-            {% if about_image %}
+            {% if section.settings.about_image %}
               {{
-                about_image
+                section.settings.about_image
                 | image_url: width: 900
                 | image_tag:
                   class: 'scroll-reveal-img w-full h-full object-cover object-top',
                   loading: 'lazy',
                   sizes: '(min-width: 768px) 40vw, 80vw'
               }}
+            {% elsif section.settings.about_image_url != blank %}
+              <img
+                src="{{ section.settings.about_image_url }}"
+                alt="{{ section.settings.about_heading | escape }}"
+                class="scroll-reveal-img w-full h-full object-cover object-top"
+                loading="lazy"
+                sizes="(min-width: 768px) 40vw, 80vw"
+              >
             {% else %}
               <div class="w-full h-full bg-muted"></div>
             {% endif %}
@@ -73,62 +83,107 @@
         {% endif %}
 
         {% if section.settings.portfolio_description != blank %}
-          <div class="mt-4 text-base leading-relaxed text-accent max-w-[52ch] mx-auto [&_p]:m-0">
+          <div class="mt-4 text-base leading-relaxed text-accent max-w-[80ch] mx-auto [&_p]:m-0">
             {{ section.settings.portfolio_description }}
           </div>
         {% endif %}
 
         <div class="grid grid-cols-2 md:grid-cols-3 gap-x-3 sm:gap-x-6 gap-y-10 mt-10 max-w-[820px] mx-auto justify-items-center" data-folders>
-          {% for block in section.blocks %}
-            {% case block.type %}
-              {% when 'portfolio-folder' %}
-                {% assign folder_image = block.settings.image | default: about_image %}
-                {% if block.settings.link != blank %}
-                  <a
-                    href="{{ block.settings.link }}"
-                    class="portfolio-folder group flex flex-col items-center min-w-0 max-w-full text-center no-underline text-inherit"
-                    data-folder
-                    {{ block.shopify_attributes }}
-                  >
-                {% else %}
-                  <div
-                    class="portfolio-folder group flex flex-col items-center min-w-0 max-w-full cursor-pointer text-center"
-                    data-folder
-                    tabindex="0"
-                    role="button"
-                    aria-label="{{ block.settings.title | escape }} — tap to peek"
-                    {{ block.shopify_attributes }}
-                  >
-                {% endif %}
-                  <div class="relative mx-auto w-full max-w-[160px]">
-                    <div class="relative z-0 text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto" aria-hidden="true">
-                      {{ 'folder-back.svg' | inline_asset_content }}
-                    </div>
-                    {% if folder_image %}
-                      <div class="portfolio-folder__peek absolute left-[14%] right-[14%] bottom-[10%] h-[58%] z-[1] rounded bg-white translate-y-[4%] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[90%] group-focus-within:-translate-y-[90%]" aria-hidden="true">
-                        {{
-                          folder_image
-                          | image_url: width: 600
-                          | image_tag:
-                            class: 'rounded w-full h-full object-cover',
-                            loading: 'lazy'
-                        }}
+          {% for folder_type in gallery_types %}
+            {% liquid
+              assign type_entries = gallery_entries | where: 'type', folder_type
+              assign folder_title = folder_type
+              assign folder_items = ''
+              for entry in type_entries
+                assign item_image_url = entry.image | image_url: width: 800 | json
+                assign item_title_json = entry.title | strip_html | strip_newlines | strip | json
+                assign item_desc_json = entry.desc | strip_html | strip_newlines | strip | json
+                assign item_json = '{"image":' | append: item_image_url | append: ',"title":' | append: item_title_json | append: ',"desc":' | append: item_desc_json | append: '}'
+                if forloop.first
+                  assign folder_items = item_json
+                else
+                  assign folder_items = folder_items | append: ',' | append: item_json
+                endif
+              endfor
+              assign folder_items_json = '[' | append: folder_items | append: ']'
+            %}
+            <button
+              type="button"
+              class="portfolio-folder group flex flex-col items-center min-w-0 max-w-full cursor-pointer text-center appearance-none bg-transparent border-0 p-0"
+              data-folder
+              data-folder-title="{{ folder_title | escape }}"
+              data-folder-items="{{ folder_items_json | escape }}"
+              aria-label="{{ folder_title | escape }} — view all"
+            >
+              <div class="relative mx-auto w-full max-w-[160px]">
+                <div class="relative z-0 text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto" aria-hidden="true">
+                  {{ 'folder-back.svg' | inline_asset_content }}
+                </div>
+                {% if type_entries.size > 0 %}
+                  <div class="portfolio-folder__peek absolute left-[14%] right-[14%] bottom-[10%] h-[58%] z-[1] overflow-hidden translate-y-[4%] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[110%] group-focus-within:-translate-y-[170%]" aria-hidden="true">
+                    {% for entry in type_entries limit: 3 %}
+                      <div
+                        class="portfolio-folder__peek-img absolute inset-[6%] rounded bg-white border border-foreground/10 shadow-small
+                          {% if forloop.index == 1 %}z-[3] rotate-0
+                          {% elsif forloop.index == 2 %}z-[2] -rotate-6 -translate-x-3
+                          {% else %}z-[1] rotate-6 translate-x-3{% endif %}"
+                      >
+                        {% if entry.image %}
+                          {{
+                            entry.image
+                            | image_url: width: 600
+                            | image_tag:
+                              class: 'rounded w-full h-full object-top object-cover',
+                              loading: 'lazy',
+                              alt: entry.desc
+                          }}
+                        {% endif %}
                       </div>
-                    {% endif %}
-                    <div class="absolute inset-0 z-[2] pointer-events-none text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto" aria-hidden="true">
-                      {{ 'folder-front.svg' | inline_asset_content }}
-                    </div>
-                  </div>
-                  <div class="portfolio-folder__label font-primary inline-block border-2 border-foreground bg-white px-3 py-1.5 text-sm font-bold uppercase tracking-wide mt-[-11px] relative z-[2] rounded-[2px] -rotate-2 shadow-small max-w-full max-sm:text-[0.7rem] max-sm:leading-[1.2] max-sm:px-2 max-sm:py-1.5">
-                    {{ block.settings.title }}
-                  </div>
-                {% if block.settings.link != blank %}
-                  </a>
-                {% else %}
+                    {% endfor %}
                   </div>
                 {% endif %}
-            {% endcase %}
+                <div class="absolute inset-0 z-[2] pointer-events-none text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto" aria-hidden="true">
+                  {{ 'folder-front.svg' | inline_asset_content }}
+                </div>
+              </div>
+              <div class="portfolio-folder__label font-primary inline-block border-2 border-foreground bg-white px-3 py-1.5 text-sm font-bold uppercase tracking-wide mt-[-11px] relative z-[2] rounded-[2px] -rotate-2 shadow-small max-w-full max-sm:text-[0.7rem] max-sm:leading-[1.2] max-sm:px-2 max-sm:py-1.5">
+                {{ folder_title }}
+              </div>
+            </button>
           {% endfor %}
+        </div>
+
+        <div
+          class="folder-lightbox fixed inset-0 z-[100] hidden items-center justify-center p-4 bg-[rgba(240,240,240,0.95)] backdrop-blur-md opacity-0 transition-opacity duration-300"
+          data-folder-lightbox
+          role="dialog"
+          aria-modal="true"
+        >
+          <button type="button" class="absolute top-4 right-4 z-10 w-10 h-10 rounded-full border-2 border-foreground bg-white cursor-pointer inline-flex items-center justify-center" data-folder-lightbox-close aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+              <line x1="6" y1="6" x2="18" y2="18"/>
+              <line x1="18" y1="6" x2="6" y2="18"/>
+            </svg>
+          </button>
+          <button type="button" class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-11 md:h-11 rounded-full border-2 border-foreground bg-white cursor-pointer inline-flex items-center justify-center" data-folder-lightbox-prev aria-label="Previous image">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+          </button>
+          <button type="button" class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 md:w-11 md:h-11 rounded-full border-2 border-foreground bg-white cursor-pointer inline-flex items-center justify-center" data-folder-lightbox-next aria-label="Next image">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+
+          <figure class="flex flex-col items-center max-w-[92vw] md:max-w-4xl translate-y-16 scale-95 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]" data-folder-lightbox-figure>
+            <img class="max-w-full max-h-[75vh] object-contain rounded-md border-2 border-foreground bg-white shadow-hard" data-folder-lightbox-img src="" alt="">
+            <figcaption class="mt-4 text-center max-w-[70ch]">
+              <p class="font-primary text-xs uppercase tracking-[0.2em] text-accent font-bold m-0" data-folder-lightbox-category></p>
+              <h3 class="font-primary text-lg md:text-xl font-bold uppercase mt-1 mb-0 text-foreground" data-folder-lightbox-title></h3>
+              <p class="text-sm text-accent mt-2 mb-0" data-folder-lightbox-desc></p>
+            </figcaption>
+          </figure>
         </div>
       </div>
 
@@ -355,7 +410,7 @@
 
   /* JS-toggled peek state (hover covered by group-hover: in markup) */
   .portfolio-folder.is-peeking .portfolio-folder__peek {
-    transform: translateY(-90%);
+    transform: translateY(-100%);
   }
 
   .portfolio-folder:nth-child(even) .portfolio-folder__label {
@@ -438,28 +493,108 @@
 
   (function () {
     var folders = document.querySelector('[data-folders]');
-    if (folders) {
+    var folderLightbox = document.querySelector('[data-folder-lightbox]');
+
+    if (folders && folderLightbox) {
+      var figure = folderLightbox.querySelector('[data-folder-lightbox-figure]');
+      var imgEl = folderLightbox.querySelector('[data-folder-lightbox-img]');
+      var categoryEl = folderLightbox.querySelector('[data-folder-lightbox-category]');
+      var titleEl = folderLightbox.querySelector('[data-folder-lightbox-title]');
+      var descEl = folderLightbox.querySelector('[data-folder-lightbox-desc]');
+      var prevBtn = folderLightbox.querySelector('[data-folder-lightbox-prev]');
+      var nextBtn = folderLightbox.querySelector('[data-folder-lightbox-next]');
+      var closeBtn = folderLightbox.querySelector('[data-folder-lightbox-close]');
+      var items = [];
+      var category = '';
+      var current = 0;
+      var isOpen = false;
+
+      function showImage(index) {
+        if (!items.length) return;
+        current = ((index % items.length) + items.length) % items.length;
+        var item = items[current];
+        imgEl.src = item.image || '';
+        imgEl.alt = item.title || item.desc || '';
+        if (categoryEl) categoryEl.textContent = category;
+        if (titleEl) titleEl.textContent = item.title || '';
+        if (descEl) descEl.textContent = item.desc || '';
+      }
+
+      function openFolderLightbox(folder) {
+        try {
+          items = JSON.parse(folder.getAttribute('data-folder-items') || '[]');
+        } catch (e) {
+          items = [];
+        }
+        if (!items.length) return;
+
+        category = folder.getAttribute('data-folder-title') || '';
+        showImage(0);
+
+        folderLightbox.classList.remove('hidden');
+        folderLightbox.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+        isOpen = true;
+
+        requestAnimationFrame(function () {
+          folderLightbox.classList.remove('opacity-0');
+          if (figure) figure.classList.remove('translate-y-16', 'scale-95', 'opacity-0');
+        });
+      }
+
+      function closeFolderLightbox() {
+        folderLightbox.classList.add('opacity-0');
+        if (figure) figure.classList.add('translate-y-16', 'scale-95', 'opacity-0');
+        isOpen = false;
+        document.body.style.overflow = '';
+        setTimeout(function () {
+          folderLightbox.classList.add('hidden');
+          folderLightbox.classList.remove('flex');
+        }, 300);
+      }
+
       folders.addEventListener('click', function (event) {
         var folder = event.target.closest('[data-folder]');
         if (!folder) return;
-
-        // Linked folder: first tap peeks, second tap follows the link (touch-friendly)
-        if (folder.tagName === 'A' && !folder.classList.contains('is-peeking')) {
-          if (window.matchMedia('(hover: none)').matches) {
-            event.preventDefault();
-            folder.classList.add('is-peeking');
-            return;
-          }
-        }
-        folder.classList.toggle('is-peeking');
+        openFolderLightbox(folder);
       });
 
-      folders.addEventListener('keydown', function (event) {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        var folder = event.target.closest('[data-folder]');
-        if (!folder || folder.tagName === 'A') return;
-        event.preventDefault();
-        folder.classList.toggle('is-peeking');
+      if (prevBtn) prevBtn.addEventListener('click', function (event) { event.stopPropagation(); showImage(current - 1); });
+      if (nextBtn) nextBtn.addEventListener('click', function (event) { event.stopPropagation(); showImage(current + 1); });
+      if (closeBtn) closeBtn.addEventListener('click', closeFolderLightbox);
+
+      folderLightbox.addEventListener('click', function (event) {
+        if (event.target === folderLightbox) closeFolderLightbox();
+      });
+
+      document.addEventListener('keydown', function (event) {
+        if (!isOpen) return;
+        if (event.key === 'Escape') closeFolderLightbox();
+        else if (event.key === 'ArrowLeft') showImage(current - 1);
+        else if (event.key === 'ArrowRight') showImage(current + 1);
+      });
+
+      var touchStartX = 0;
+      var touchDeltaX = 0;
+      var touching = false;
+
+      folderLightbox.addEventListener('touchstart', function (event) {
+        touching = true;
+        touchStartX = event.touches[0].clientX;
+        touchDeltaX = 0;
+      }, { passive: true });
+
+      folderLightbox.addEventListener('touchmove', function (event) {
+        if (!touching) return;
+        touchDeltaX = event.touches[0].clientX - touchStartX;
+      }, { passive: true });
+
+      folderLightbox.addEventListener('touchend', function () {
+        if (!touching) return;
+        touching = false;
+        if (Math.abs(touchDeltaX) > 40) {
+          showImage(touchDeltaX < 0 ? current + 1 : current - 1);
+        }
       });
     }
 
@@ -704,34 +839,23 @@
           "default": "Turnaround usually takes 1-3 weeks depending on complexity and current queue length."
         }
       ]
-    },
-    {
-      "type": "portfolio-folder",
-      "name": "Portfolio folder",
-      "settings": [
-        {
-          "type": "text",
-          "id": "title",
-          "label": "Title",
-          "default": "Project name"
-        },
-        {
-          "type": "image_picker",
-          "id": "image",
-          "label": "Image"
-        },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Folder link (collection, product, or page)"
-        }
-      ]
     }
   ],
   "settings": [
     {
       "type": "header",
       "content": "About section"
+    },
+    {
+      "type": "image_picker",
+      "id": "about_image",
+      "label": "About image"
+    },
+    {
+      "type": "text",
+      "id": "about_image_url",
+      "label": "About image URL (used when no image is picked above)",
+      "default": "https://cdn.shopify.com/s/files/1/0727/6055/7738/files/anl2.jpg"
     },
     {
       "type": "text",
@@ -749,7 +873,7 @@
       "type": "richtext",
       "id": "about_description",
       "label": "Description",
-      "default": "<p>I'm an independent illustrator creating custom artwork for people who want to bring their ideas to life. </br> I work on character art, avatars, illustrations, and whatever fun little project comes my way. Every commission starts with an idea and I get to turn it into something that's uniquely yours.</p>"
+      "default": "<p>I'm an independent illustrator creating custom artwork for people who want to bring their ideas to life. </br> I work on character art, avatars, illustrations, and whatever fun little project comes my way.</p> <p> Every commission starts with an idea and I get to turn it into something that's uniquely yours.</p>"
     },
     {
       "type": "text",
@@ -765,6 +889,10 @@
     {
       "type": "header",
       "content": "Portfolio section"
+    },
+    {
+      "type": "paragraph",
+      "content": "Folders are generated from the \"gallery\" metaobject, grouped by its type field (up to 3 images per folder)."
     },
     {
       "type": "text",
@@ -859,12 +987,6 @@
     {
       "name": "Main card",
       "blocks": [
-        { "type": "portfolio-folder", "settings": { "title": "Original characters" } },
-        { "type": "portfolio-folder", "settings": { "title": "Fanart" } },
-        { "type": "portfolio-folder", "settings": { "title": "Chibi & mini" } },
-        { "type": "portfolio-folder", "settings": { "title": "Stickers & emotes" } },
-        { "type": "portfolio-folder", "settings": { "title": "Commissions" } },
-        { "type": "portfolio-folder", "settings": { "title": "Sketchbook" } },
         { "type": "gallery-image" },
         { "type": "gallery-image" },
         { "type": "gallery-image" },
