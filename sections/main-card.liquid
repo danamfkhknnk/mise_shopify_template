@@ -122,6 +122,7 @@
                 {% if type_entries.size > 0 %}
                   <div class="portfolio-folder__peek absolute left-[14%] right-[14%] bottom-[10%] h-[58%] z-[1] overflow-hidden translate-y-[4%] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[110%] group-focus-within:-translate-y-[170%]" aria-hidden="true">
                     {% for entry in type_entries limit: 3 %}
+                      {% assign peek_alt = entry.desc | strip_html | strip_newlines | strip %}
                       <div
                         class="portfolio-folder__peek-img absolute inset-[6%] rounded bg-white border border-foreground/10 shadow-small
                           {% if forloop.index == 1 %}z-[3] rotate-0
@@ -135,7 +136,7 @@
                             | image_tag:
                               class: 'rounded w-full h-full object-top object-cover',
                               loading: 'lazy',
-                              alt: entry.desc
+                              alt: peek_alt
                           }}
                         {% endif %}
                       </div>
@@ -205,12 +206,7 @@
         {% endif %}
 
         {% liquid
-          assign gallery_count = 0
-          for block in section.blocks
-            if block.type == 'gallery-image'
-              assign gallery_count = gallery_count | plus: 1
-            endif
-          endfor
+          assign gallery_marquee_total = gallery_entries.size
         %}
 
         <div data-gallery-viewport class="mt-10 text-left overflow-hidden cursor-default h-[560px] max-md:h-[440px] [mask-image:linear-gradient(to_bottom,transparent,black_8%,black_92%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_8%,black_92%,transparent)]">
@@ -227,9 +223,11 @@
                         aria-hidden="true"
                       {% endif %}
                     >
-                      {% if gallery_count == 0 %}
+                      {% if gallery_marquee_total == 0 %}
+                        {% assign dummy_ratio_w = about_image.width | default: about_image.preview_image.width | default: 1 %}
+                        {% assign dummy_ratio_h = about_image.height | default: about_image.preview_image.height | default: 1 %}
                         {% for i in (1..4) %}
-                          <div class="border-2 border-foreground rounded-md overflow-hidden bg-background odd:aspect-[3/4] even:aspect-square">
+                          <div class="border-2 border-foreground rounded-md overflow-hidden bg-background" style="aspect-ratio: {{ dummy_ratio_w }} / {{ dummy_ratio_h }};">
                             {% if about_image %}
                               {{
                                 about_image
@@ -245,37 +243,33 @@
                           </div>
                         {% endfor %}
                       {% else %}
-                        {% liquid
-                          assign idx = 0
-                        %}
-                        {% for block in section.blocks %}
-                          {% if block.type == 'gallery-image' %}
-                            {% assign mod = idx | modulo: 3 %}
-                            {% if mod == col %}
-                              {% assign card_image = block.settings.image | default: about_image %}
-                              <div
-                                class="border-2 border-foreground rounded-md overflow-hidden bg-background odd:aspect-[3/4] even:aspect-square"
-                                data-gallery-card
-                                data-full="{{ card_image | image_url: width: 1600 }}"
-                                {% if pass == 1 %}
-                                  {{ block.shopify_attributes }}
-                                {% endif %}
-                              >
-                                {% if card_image %}
-                                  {{
-                                    card_image
-                                    | image_url: width: 800
-                                    | image_tag:
-                                      class: 'block w-full h-full object-cover',
-                                      loading: 'lazy',
-                                      sizes: '(min-width: 1024px) 25vw, (min-width: 768px) 40vw, 80vw'
-                                  }}
-                                {% else %}
-                                  <div class="w-full h-full bg-muted"></div>
-                                {% endif %}
-                              </div>
-                            {% endif %}
-                            {% assign idx = idx | plus: 1 %}
+                        {% for entry in gallery_entries %}
+                          {% assign mod = forloop.index0 | modulo: 3 %}
+                          {% if mod == col %}
+                            {% assign card_image = entry.image | default: about_image %}
+                            {% assign card_alt = entry.desc | strip_html | strip_newlines | strip %}
+                            {% assign card_ratio_w = card_image.width | default: card_image.preview_image.width | default: 1 %}
+                            {% assign card_ratio_h = card_image.height | default: card_image.preview_image.height | default: 1 %}
+                            <div
+                              class="border-2 border-foreground rounded-md overflow-hidden bg-background"
+                              style="aspect-ratio: {{ card_ratio_w }} / {{ card_ratio_h }};"
+                              data-gallery-card
+                              data-full="{{ card_image | image_url: width: 1600 }}"
+                            >
+                              {% if card_image %}
+                                {{
+                                  card_image
+                                  | image_url: width: 800
+                                  | image_tag:
+                                    class: 'block w-full h-full object-cover',
+                                    loading: 'lazy',
+                                    alt: card_alt,
+                                    sizes: '(min-width: 1024px) 25vw, (min-width: 768px) 40vw, 80vw'
+                                }}
+                              {% else %}
+                                <div class="w-full h-full bg-muted"></div>
+                              {% endif %}
+                            </div>
                           {% endif %}
                         {% endfor %}
                       {% endif %}
@@ -650,6 +644,96 @@
     }
   })();
 
+  /* Randomize which gallery photo lands in which marquee slot. The 3
+     columns and their seamless-loop duplicate pass are still rendered
+     server-side (so the marquee works without JS); this just reshuffles
+     the image data across the existing slots, then mirrors each column's
+     first pass onto its aria-hidden clone so the infinite-scroll loop
+     stays seamless. */
+  (function () {
+    var viewport = document.querySelector('[data-gallery-viewport]');
+    if (!viewport) return;
+
+    var grid = viewport.querySelector(':scope > div');
+    if (!grid) return;
+
+    var columns = Array.prototype.map.call(grid.children, function (colWrap) {
+      var track = colWrap.querySelector(':scope > div');
+      var passes = track ? track.children : [];
+      return {
+        pass1: passes[0] ? Array.prototype.slice.call(passes[0].querySelectorAll('[data-gallery-card]')) : [],
+        pass2: passes[1] ? Array.prototype.slice.call(passes[1].querySelectorAll('[data-gallery-card]')) : []
+      };
+    });
+
+    var pool = [];
+    columns.forEach(function (col) {
+      col.pass1.forEach(function (card) {
+        var img = card.querySelector('img');
+        pool.push({
+          src: img ? img.src : '',
+          alt: img ? img.alt : '',
+          full: card.getAttribute('data-full') || '',
+          aspectRatio: card.style.aspectRatio || ''
+        });
+      });
+    });
+
+    function applyCardData(card, data) {
+      card.setAttribute('data-full', data.full);
+      card.style.aspectRatio = data.aspectRatio;
+      var img = card.querySelector('img');
+      if (img) {
+        img.src = data.src;
+        img.alt = data.alt;
+      }
+    }
+
+    if (pool.length > 1) {
+      for (var i = pool.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var tmp = pool[i];
+        pool[i] = pool[j];
+        pool[j] = tmp;
+      }
+
+      var cursor = 0;
+      columns.forEach(function (col) {
+        col.pass1.forEach(function (card, index) {
+          var data = pool[cursor++];
+          if (!data) return;
+          applyCardData(card, data);
+          var mirror = col.pass2[index];
+          if (mirror) applyCardData(mirror, data);
+        });
+      });
+    }
+
+    // The metaobject "image" field doesn't expose width/height/aspect_ratio
+    // to Liquid the way a normal product/section image does, so the
+    // aspect-ratio set server-side is only a best-effort guess (and often
+    // wrong). Correct it here once each <img> actually loads, using its
+    // real natural size, so cropped/squeezed images self-correct.
+    function syncRatio(card) {
+      var img = card.querySelector('img');
+      if (!img) return;
+      var apply = function () {
+        if (img.naturalWidth && img.naturalHeight) {
+          card.style.aspectRatio = img.naturalWidth + ' / ' + img.naturalHeight;
+        }
+      };
+      if (img.complete && img.naturalWidth) {
+        apply();
+      } else {
+        img.addEventListener('load', apply, { once: true });
+      }
+    }
+
+    columns.forEach(function (col) {
+      col.pass1.concat(col.pass2).forEach(syncRatio);
+    });
+  })();
+
   (function () {
     function init() {
       var helpers = window.ArthehopeAnims;
@@ -812,17 +896,6 @@
   "name": "Main card",
   "blocks": [
     {
-      "type": "gallery-image",
-      "name": "Gallery image",
-      "settings": [
-        {
-          "type": "image_picker",
-          "id": "image",
-          "label": "Image"
-        }
-      ]
-    },
-    {
       "type": "question",
       "name": "Question",
       "settings": [
@@ -917,6 +990,10 @@
       "content": "Gallery section"
     },
     {
+      "type": "paragraph",
+      "content": "Photos are generated from every entry in the \"gallery\" metaobject (all types), shuffled to a random order on each page view."
+    },
+    {
       "type": "text",
       "id": "gallery_badge",
       "label": "Badge",
@@ -987,12 +1064,6 @@
     {
       "name": "Main card",
       "blocks": [
-        { "type": "gallery-image" },
-        { "type": "gallery-image" },
-        { "type": "gallery-image" },
-        { "type": "gallery-image" },
-        { "type": "gallery-image" },
-        { "type": "gallery-image" },
         {
           "type": "question",
           "settings": {
