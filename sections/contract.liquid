@@ -1,0 +1,192 @@
+{% doc %}
+  Renders a commission contract agreement page with numbered items,
+  section separators, and call-to-action buttons.
+
+  @example
+  {% section 'contract' %}
+{% enddoc %}
+
+<div class="full-width w-full">
+  <div class="max-w-[900px] mx-auto px-6 py-16 md:py-24">
+    <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
+
+      <div class="text-center mb-12">
+        {% render 'badge', text: 'Terms of Service' %}
+
+        <h1 class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase mb-6">
+          {{ section.settings.contract_title }}
+        </h1>
+
+        {% if section.settings.contract_intro != blank %}
+          <p class="text-base text-accent max-w-[60ch] mx-auto">
+            {{ section.settings.contract_intro }}
+          </p>
+        {% endif %}
+      </div>
+
+      <div class="space-y-0 mb-12">
+        {% for block in section.blocks %}
+          {% if block.type == 'item' %}
+            <div class="py-6 border-b-2 border-foreground last:border-b-0">
+              <div class="flex gap-6 items-start">
+                <span class="font-primary font-bold text-lg text-accent shrink-0 min-w-[3rem]">
+                  {% if block.settings.number != blank %}
+                    {{ block.settings.number }}
+                  {% else %}
+                    {{ forloop.index | prepend: '0' | slice: -2 }}
+                  {% endif %}
+                </span>
+                <div class="flex-1 min-w-0">
+                  {% if block.settings.title != blank %}
+                    <h3 class="font-primary font-bold uppercase text-base text-foreground m-0 mb-2">
+                      {{ block.settings.title }}
+                    </h3>
+                  {% endif %}
+                  {% if block.settings.description != blank %}
+                    <p class="text-base text-foreground m-0 leading-relaxed">
+                      {{ block.settings.description }}
+                    </p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="text-center pt-8">
+        {% if section.settings.contact_cta_text != blank %}
+          <a
+            href="{{ section.settings.contact_cta_url | default: '/pages/contact' }}"
+            data-magnetic
+            class="font-primary inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 no-underline"
+          >
+            <span class="hover-rollup leading-[1.3] h-[1.3em]">
+              <span class="hover-rollup__item">{{ section.settings.contact_cta_text }}</span>
+              <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.contact_cta_text }}</span>
+            </span>
+            <span class="inline-flex shrink-0" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </span>
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Contract agreement",
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Contract item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "number",
+          "label": "Item number (e.g., 01, 02)",
+          "default": "01"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Title",
+          "default": "PAYMENT"
+        },
+        {
+          "type": "textarea",
+          "id": "description",
+          "label": "Description",
+          "default": "Full payment is required before work begins."
+        }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "contract_title",
+      "label": "Contract title",
+      "default": "Commission Contract"
+    },
+    {
+      "type": "textarea",
+      "id": "contract_intro",
+      "label": "Intro text",
+      "default": "Before we start drawing, here's the important stuff."
+    },
+    {
+      "type": "text",
+      "id": "contact_cta_text",
+      "label": "Contact CTA text",
+      "default": "Have questions? Contact me"
+    },
+    {
+      "type": "url",
+      "id": "contact_cta_url",
+      "label": "Contact link"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contract agreement",
+      "blocks": [
+        {
+          "type": "item",
+          "settings": {
+            "number": "01",
+            "title": "Payment",
+            "description": "Full payment is required before work begins. We accept PayPal, credit cards, and bank transfers. 50% deposit is required to place an order, remaining 50% due before completion. Payment plans are available upon request for larger commissions."
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "number": "02",
+            "title": "Revisions",
+            "description": "Up to 3 revision rounds are included with each commission. Major design changes after final sketch approval may incur additional fees. Revisions must be requested within 30 days of receiving the final artwork."
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "number": "03",
+            "title": "Usage rights",
+            "description": "Personal usage rights are included with all commissions. Commercial usage licenses are available as an add-on. You may not resell, redistribute, or use the artwork for commercial purposes without explicit permission and a separate commercial license agreement."
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "number": "04",
+            "title": "Cancellation",
+            "description": "Cancellations must be requested within 48 hours of payment for a full refund. After work has begun, refunds are not available. If we cancel due to circumstances on our end, a full refund will be issued."
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "number": "05",
+            "title": "Delivery",
+            "description": "Standard turnaround time is 1-3 weeks depending on complexity and current queue. Rush orders are available for an additional fee. Final artwork will be delivered in agreed-upon formats (PNG, PSD, etc.)."
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "number": "06",
+            "title": "Ownership",
+            "description": "We retain the right to display finished commissions in our portfolio and on social media. You may request work not to be shared publicly. All original files remain our property unless otherwise agreed upon."
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

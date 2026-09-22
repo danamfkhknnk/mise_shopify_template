@@ -30,7 +30,7 @@
       {% endif %}
 
       {% if section.settings.button_label != blank %}
-        <a href="{{ section.settings.button_url | default: '#' }}" data-magnetic class="font-primary rounded-md inline-flex items-center gap-2.5 py-3.5 px-6 border-2 border-foreground bg-[var(--color-accent)] text-white font-bold no-underline">
+        <a href="{{ section.settings.button_url | default: 'pages/contact' }}" data-magnetic class="font-primary rounded-md inline-flex items-center gap-2.5 py-3.5 px-6 border-2 border-foreground bg-[var(--color-accent)] text-white font-bold no-underline">
           <span class="hover-rollup leading-[1.3] h-[1.3em]">
             <span class="hover-rollup__item">{{ section.settings.button_label }}</span>
             <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.button_label }}</span>

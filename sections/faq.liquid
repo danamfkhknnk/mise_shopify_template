@@ -1,6 +1,8 @@
 {% doc %}
-  Renders a full FAQ page with a badge, heading, description and an
-  accordion list of "question" blocks.
+  Renders a two-column FAQ page: a sticky intro column (badge, heading,
+  description and a "got more questions" CTA card) alongside an accordion
+  list of "category" and "question" blocks. Collapses to a single stacked
+  column on mobile.
 
   @example
   {% section 'faq' %}
@@ -10,24 +12,49 @@
   <div class="max-w-[1400px] mx-auto px-6 py-16 md:py-24">
     <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
 
-      <div class="text-center mb-12 md:mb-16">
-        {% render 'badge', text: section.settings.badge_text %}
+      <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-10 md:gap-16">
 
-        {% if section.settings.heading != blank %}
-          <h1 class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase mt-4">
-            {{ section.settings.heading }}
-          </h1>
-        {% endif %}
+        <div class="md:sticky md:top-24 md:self-start">
+          {% render 'badge', text: section.settings.badge_text %}
 
-        {% if section.settings.description != blank %}
-          <div class="mt-4 text-base leading-relaxed text-accent max-w-[52ch] mx-auto [&_p]:m-0">
-            {{ section.settings.description }}
-          </div>
-        {% endif %}
-      </div>
+          {% if section.settings.heading != blank %}
+            <h1 class="font-primary m-0 text-[clamp(2rem,4vw,2.75rem)] font-bold leading-[1.05] uppercase">
+              {{ section.settings.heading }}
+            </h1>
+          {% endif %}
 
-      <div class="max-w-[720px] mx-auto flex flex-col gap-[0.9rem]" data-faq-list>
-        {% content_for 'blocks' %}
+          {% if section.settings.description != blank %}
+            <div class="mt-4 text-base leading-relaxed text-accent max-w-[40ch] [&_p]:m-0">
+              {{ section.settings.description }}
+            </div>
+          {% endif %}
+
+          {% if section.settings.cta_heading != blank or section.settings.cta_link_text != blank %}
+            <a
+              href="{{ section.settings.cta_url | default: '/pages/contact' }}"
+              data-magnetic
+              class="mt-8 font-primary inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 no-underline"
+            >
+              {% if section.settings.cta_heading != blank %}
+                <span class="hover-rollup leading-[1.3] h-[1.3em]">
+                  <span class="hover-rollup__item">{{ section.settings.cta_heading }}</span>
+                  <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.cta_heading }}</span>
+                </span>
+              {% endif %}
+              <span class="inline-flex shrink-0" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                  <polyline points="12 5 19 12 12 19"/>
+                </svg>
+              </span>
+            </a>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-col [counter-reset:faq-counter]" data-faq-list>
+          {% content_for 'blocks' %}
+        </div>
+
       </div>
 
     </div>
@@ -49,20 +76,8 @@
 
     var isOpen = trigger.getAttribute('aria-expanded') === 'true';
 
-    list.querySelectorAll('[data-faq-trigger][aria-expanded="true"]').forEach(function (other) {
-      if (other === trigger) return;
-      other.setAttribute('aria-expanded', 'false');
-      var otherItem = other.parentElement;
-      var otherPanel = otherItem.querySelector('[data-faq-panel]');
-      var otherIcon = other.querySelector('[data-faq-icon]');
-      if (otherPanel) otherPanel.hidden = true;
-      if (otherIcon) otherIcon.style.transform = '';
-      otherItem.classList.remove('shadow-hard');
-    });
-
     trigger.setAttribute('aria-expanded', String(!isOpen));
     panel.hidden = isOpen;
-    item.classList.toggle('shadow-hard', !isOpen);
     if (icon) icon.style.transform = isOpen ? '' : 'rotate(135deg)';
   });
 {% endjavascript %}
@@ -71,6 +86,9 @@
 {
   "name": "FAQ",
   "blocks": [
+    {
+      "type": "category"
+    },
     {
       "type": "question"
     }
@@ -86,45 +104,166 @@
       "type": "text",
       "id": "heading",
       "label": "Heading",
-      "default": "Frequently asked questions"
+      "default": "Before you commission me..."
     },
     {
       "type": "richtext",
       "id": "description",
       "label": "Description",
-      "default": "<p>Everything you need to know before reaching out.</p>"
+      "default": "<p>Here's everything you might want to know.</p>"
+    },
+    {
+      "type": "text",
+      "id": "cta_heading",
+      "label": "CTA heading",
+      "default": "Got more questions? Say Hi"
+    },
+    {
+      "type": "text",
+      "id": "cta_link_text",
+      "label": "CTA link text",
+      "default": "Say hi"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "CTA link"
     }
   ],
   "presets": [
     {
-      "name": "FAQ",
+      "name": "FAQ Page",
       "blocks": [
         {
-          "type": "question",
+          "type": "category",
           "settings": {
-            "question": "How long does a commission take?",
-            "answer": "Turnaround usually takes 1-3 weeks depending on complexity and current queue length. You'll get updates along the way."
+            "category_title": "General",
+            "category_key": "general"
           }
         },
         {
           "type": "question",
           "settings": {
+            "category": "general",
+            "question": "Why should I commission this studio?",
+            "answer": "<p>We specialize in VTuber model creation and custom illustrations, offering high-quality results at budget-friendly prices. Our team of experienced artists is at your service.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "general",
+            "question": "How do I start a project?",
+            "answer": "<p>Simply contact us through the Contact section and ask for a quotation.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "general",
+            "question": "Is there any form to fill in for commissions?",
+            "answer": "<p>Once you placed the order, a requirement list would be sent for you to fill in.</p>"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "category_title": "Price and Payments",
+            "category_key": "pricing"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "pricing",
+            "question": "How much do your services cost?",
+            "answer": "<p>Our pricing is detailed in our Price List section. If you have a specific project in mind, feel free to contact us for a custom quote.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "pricing",
             "question": "What payment methods do you accept?",
-            "answer": "All major cards and PayPal are accepted at checkout, processed securely through Shopify."
+            "answer": "<p>We accept payments via PayPal, or you can place your order on our Fiverr and VGen page.</p>"
           }
         },
         {
           "type": "question",
           "settings": {
-            "question": "Can I request revisions?",
-            "answer": "Yes, each commission includes a set number of revision rounds so the final piece matches your vision."
+            "category": "pricing",
+            "question": "Do you offer payment plans?",
+            "answer": "<p>We prefer all payments are made in full upfront, but for clients with special needs, we do offer a two-part payment plan: 50% upfront to place the order and 50% before rigging begins.</p>"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "category_title": "Packages and Services",
+            "category_key": "packages"
           }
         },
         {
           "type": "question",
           "settings": {
-            "question": "Do you offer commercial usage rights?",
-            "answer": "Commercial licensing is available as an add-on. Reach out before ordering if you need it for a business or product."
+            "category": "packages",
+            "question": "What's included in a VTuber model package?",
+            "answer": "<p>Our VTuber packages typically include a fully rigged model, optional poses and expression toggles, and custom designs tailored to your specifications.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "packages",
+            "question": "Can I request a certain artist and rigger for my model?",
+            "answer": "<p>We assign the artists and riggers based on their availability and their specialities. Clients who want to select specific artists or riggers may incur additional fees and longer wait times.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "packages",
+            "question": "Do you offer art only or rig only commissions?",
+            "answer": "<p>We currently don't accept art-only or rig-only commissions, as we focus on providing complete art + rig packages to ensure the best quality and consistency.</p>"
+          }
+        },
+        {
+          "type": "category",
+          "settings": {
+            "category_title": "Others",
+            "category_key": "others"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "others",
+            "question": "How long does it take to create a VTuber model?",
+            "answer": "<p>Please check our Queue Time section for reference.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "others",
+            "question": "Do you offer fast delivery?",
+            "answer": "<p>No, we don't.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "others",
+            "question": "What happens after I place the order?",
+            "answer": "<p>Our project manager would be communicating with you on your preferred platform as a bridge between you and the assigned artist and rigger for updates and feedback.</p>"
+          }
+        },
+        {
+          "type": "question",
+          "settings": {
+            "category": "others",
+            "question": "Can I request revisions on my VTuber model?",
+            "answer": "<p>Yes! We offer revisions during the design and rigging phases. Please check our process of work on our TOS section for reference.</p>"
           }
         }
       ]

@@ -2,6 +2,37 @@
   "sections": {
     "contact": {
       "type": "contact",
+      "blocks": {
+        "social-1": {
+          "type": "social",
+          "settings": {
+            "platform": "Twitter",
+            "username": "@yourtwitter",
+            "url": "https://twitter.com"
+          }
+        },
+        "social-2": {
+          "type": "social",
+          "settings": {
+            "platform": "Instagram",
+            "username": "@yourinstagram",
+            "url": "https://instagram.com"
+          }
+        },
+        "social-3": {
+          "type": "social",
+          "settings": {
+            "platform": "Discord",
+            "username": "yourname#0000",
+            "url": ""
+          }
+        }
+      },
+      "block_order": [
+        "social-1",
+        "social-2",
+        "social-3"
+      ],
       "settings": {}
     }
   },

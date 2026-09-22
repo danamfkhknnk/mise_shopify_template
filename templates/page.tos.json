@@ -1,9 +1,71 @@
 {
   "sections": {
-    "main": {
-      "type": "page-content",
-      "settings": {}
+    "contract": {
+      "type": "contract",
+      "blocks": {
+        "item-1": {
+          "type": "item",
+          "settings": {
+            "number": "01",
+            "title": "Payment",
+            "description": "Full payment is required before work begins. We accept PayPal, credit cards, and bank transfers. 50% deposit is required to place an order, remaining 50% due before completion. Payment plans are available upon request for larger commissions."
+          }
+        },
+        "item-2": {
+          "type": "item",
+          "settings": {
+            "number": "02",
+            "title": "Revisions",
+            "description": "Up to 3 revision rounds are included with each commission. Major design changes after final sketch approval may incur additional fees. Revisions must be requested within 30 days of receiving the final artwork."
+          }
+        },
+        "item-3": {
+          "type": "item",
+          "settings": {
+            "number": "03",
+            "title": "Usage rights",
+            "description": "Personal usage rights are included with all commissions. Commercial usage licenses are available as an add-on. You may not resell, redistribute, or use the artwork for commercial purposes without explicit permission and a separate commercial license agreement."
+          }
+        },
+        "item-4": {
+          "type": "item",
+          "settings": {
+            "number": "04",
+            "title": "Cancellation",
+            "description": "Cancellations must be requested within 48 hours of payment for a full refund. After work has begun, refunds are not available. If we cancel due to circumstances on our end, a full refund will be issued."
+          }
+        },
+        "item-5": {
+          "type": "item",
+          "settings": {
+            "number": "05",
+            "title": "Delivery",
+            "description": "Standard turnaround time is 1-3 weeks depending on complexity and current queue. Rush orders are available for an additional fee. Final artwork will be delivered in agreed-upon formats (PNG, PSD, etc.)."
+          }
+        },
+        "item-6": {
+          "type": "item",
+          "settings": {
+            "number": "06",
+            "title": "Ownership",
+            "description": "We retain the right to display finished commissions in our portfolio and on social media. You may request work not to be shared publicly. All original files remain our property unless otherwise agreed upon."
+          }
+        }
+      },
+      "block_order": [
+        "item-1",
+        "item-2",
+        "item-3",
+        "item-4",
+        "item-5",
+        "item-6"
+      ],
+      "settings": {
+        "contract_title": "Commission Contract",
+        "contract_intro": "Before we start drawing, here's the important stuff.",
+        "contact_cta_text": "Have questions? Contact me"
+      }
     }
   },
-  "order": ["main"]
+  "order": ["contract"]
 }

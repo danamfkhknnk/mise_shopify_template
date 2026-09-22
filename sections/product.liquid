@@ -90,12 +90,12 @@
             {{ product.title }}
           </h1>
 
-          <div class="flex items-center gap-3 mt-4">
-            <span class="font-primary text-2xl font-bold text-foreground" data-product-price>
+          <div class="flex items-center mt-1">
+            <span class="font-primary text-2xl font-bold text-accent" data-product-price>
               {{ current_variant.price | money }}
             </span>
             <span
-              class="font-primary text-base font-bold text-muted line-through {% unless has_compare_price %}hidden{% endunless %}"
+              class="font-primary text-base font-bold text-accent line-through {% unless has_compare_price %}hidden{% endunless %}"
               data-product-compare-price
             >
               {{ current_variant.compare_at_price | money }}
@@ -103,12 +103,12 @@
           </div>
 
           {% if product.description != blank %}
-            <div class="product-description mt-6 text-base leading-relaxed text-accent [&_p]:m-0 [&_p+p]:mt-4">
+            <div class="product-description mt-1 leading-relaxed text-muted">
               {{ product.description }}
             </div>
           {% endif %}
 
-          {% form 'product', product, data-product-form: '', class: 'mt-8 flex flex-col gap-6' %}
+          {% form 'product', product, data-product-form: '', class: 'mt-1 flex flex-col gap-6' %}
             <script type="application/json" data-product-variants>
               [
                 {% for variant in product.variants %}
@@ -138,40 +138,28 @@
 
             {% unless product.has_only_default_variant %}
               {% for option in product.options_with_values %}
-                <div class="flex flex-col gap-1.5">
-                  <label class="font-primary text-xs font-bold uppercase tracking-wide text-foreground" for="ProductOption-{{ option.position }}">
+                <div class="flex flex-col gap-2.5">
+                  <label class="font-primary text-xs font-bold uppercase tracking-wide text-foreground">
                     {{ option.name }}
                   </label>
-                  <select
-                    id="ProductOption-{{ option.position }}"
-                    data-option-index="{{ option.position | minus: 1 }}"
-                    class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground"
-                  >
+                  <div class="flex flex-wrap gap-3" data-option-group="{{ option.position | minus: 1 }}">
                     {% for value in option.values %}
-                      <option value="{{ value | escape }}" {% if value == option.selected_value %}selected{% endif %}>
+                      <button
+                        type="button"
+                        data-option-index="{{ option.position | minus: 1 }}"
+                        data-option-value="{{ value | escape }}"
+                        class="rounded-md border-2 border-foreground px-4 py-2.5 text-sm font-bold uppercase transition-all cursor-pointer {% if value == option.selected_value %}bg-foreground text-white{% else %}bg-white text-foreground hover:bg-background{% endif %}"
+                      >
                         {{ value }}
-                      </option>
+                      </button>
                     {% endfor %}
-                  </select>
+                  </div>
                 </div>
               {% endfor %}
             {% endunless %}
 
             <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
-
-            <div class="flex flex-col gap-1.5 max-w-[140px]">
-              <label class="font-primary text-xs font-bold uppercase tracking-wide text-foreground" for="ProductQuantity">
-                {{ 'products.product.quantity' | t }}
-              </label>
-              <input
-                type="number"
-                id="ProductQuantity"
-                name="quantity"
-                value="1"
-                min="1"
-                class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground"
-              >
-            </div>
+            <input type="hidden" name="quantity" value="1">
 
             <button
               type="submit"
@@ -244,7 +232,7 @@
 
     var variantsScript = form.querySelector('[data-product-variants]');
     var variants = variantsScript ? JSON.parse(variantsScript.textContent) : [];
-    var optionSelects = Array.prototype.slice.call(form.querySelectorAll('[data-option-index]'));
+    var optionButtons = Array.prototype.slice.call(form.querySelectorAll('[data-option-value]'));
     var variantInput = form.querySelector('[data-variant-id]');
     var priceEl = section.querySelector('[data-product-price]');
     var comparePriceEl = section.querySelector('[data-product-compare-price]');
@@ -264,12 +252,20 @@
     }
 
     function findVariant() {
-      var selected = optionSelects.map(function (select) { return select.value; });
+      var selected = [];
+      for (var i = 0; i < 3; i++) {
+        var activeBtn = form.querySelector('[data-option-index="' + i + '"][aria-pressed="true"]');
+        if (activeBtn) {
+          selected.push(activeBtn.dataset.optionValue);
+        }
+      }
 
       return variants.filter(function (variant) {
-        return optionSelects.every(function (select, i) {
-          var key = 'option' + (i + 1);
-          return variant[key] === selected[i];
+        return optionButtons.every(function (btn) {
+          var idx = Number(btn.dataset.optionIndex);
+          var key = 'option' + (idx + 1);
+          var activeBtn = form.querySelector('[data-option-index="' + idx + '"][aria-pressed="true"]');
+          return !activeBtn || variant[key] === activeBtn.dataset.optionValue;
         });
       })[0];
     }
@@ -305,8 +301,25 @@
       }
     }
 
-    optionSelects.forEach(function (select) {
-      select.addEventListener('change', function () {
+    optionButtons.forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var optionIndex = btn.dataset.optionIndex;
+        var optionGroup = form.querySelector('[data-option-group="' + optionIndex + '"]');
+
+        if (optionGroup) {
+          var allBtns = optionGroup.querySelectorAll('[data-option-value]');
+          allBtns.forEach(function (b) {
+            if (b === btn) {
+              b.setAttribute('aria-pressed', 'true');
+              b.className = 'rounded-md border-2 border-foreground px-4 py-2.5 text-sm font-bold uppercase transition-all cursor-pointer bg-foreground text-white';
+            } else {
+              b.removeAttribute('aria-pressed');
+              b.className = 'rounded-md border-2 border-foreground px-4 py-2.5 text-sm font-bold uppercase transition-all cursor-pointer bg-white text-foreground hover:bg-background';
+            }
+          });
+        }
+
         updateForVariant(findVariant());
       });
     });

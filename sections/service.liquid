@@ -51,7 +51,7 @@
           <div data-service-filters class="mb-10 flex flex-nowrap gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden justify-center">
             <button
               data-filter="all"
-              class="service-filter service-filter--active shrink-0 px-5 py-2 rounded-full font-primary text-sm font-bold uppercase tracking-wide cursor-pointer"
+              class="service-filter service-filter--active shrink-0 px-5 py-2 rounded-md font-primary text-sm font-bold uppercase tracking-wide cursor-pointer"
               style="background: var(--color-accent); color: white; border: 1px solid rgba(45,42,38,0.06);"
             >
               All
@@ -60,7 +60,7 @@
               {% if tag != blank %}
                 <button
                   data-filter="{{ tag }}"
-                  class="service-filter shrink-0 px-5 py-2 rounded-full font-primary text-sm font-bold uppercase tracking-wide cursor-pointer"
+                  class="service-filter shrink-0 px-5 py-2 rounded-md font-primary text-sm font-bold uppercase tracking-wide cursor-pointer"
                   style="background: rgba(255,255,255,0.6); color: var(--color-muted); border: 1px solid rgba(45,42,38,0.06);"
                 >
                   {{ tag }}

@@ -1,0 +1,45 @@
+{% doc %}
+  Renders a heading that groups the "question" blocks placed after it
+  within a FAQ accordion list.
+
+  @param {string} category_title - The category heading text
+  @param {string} [category_key] - An optional identifier for the category
+
+  @example
+  {% content_for 'block', type: 'category', id: 'faq-category-1' %}
+{% enddoc %}
+
+<div
+  class="mt-10 first:mt-0"
+  data-faq-category="{{ block.settings.category_key }}"
+  {{ block.shopify_attributes }}
+>
+  <p class="m-0 mb-4 text-sm font-bold uppercase tracking-[0.08em] font-primary text-accent">
+    {{ block.settings.category_title }}
+  </p>
+</div>
+
+{% schema %}
+{
+  "name": "Category",
+  "settings": [
+    {
+      "type": "text",
+      "id": "category_title",
+      "label": "Category title",
+      "default": "General"
+    },
+    {
+      "type": "text",
+      "id": "category_key",
+      "label": "Category key",
+      "info": "Optional identifier used to group this category's questions."
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category"
+    }
+  ]
+}
+{% endschema %}

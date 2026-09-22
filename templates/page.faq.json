@@ -3,40 +3,171 @@
     "faq": {
       "type": "faq",
       "blocks": {
-        "question-1": {
+        "category-general": {
+          "type": "category",
+          "settings": {
+            "category_title": "General",
+            "category_key": "general"
+          }
+        },
+        "question-general-1": {
           "type": "question",
           "settings": {
-            "question": "How long does a commission take?",
-            "answer": "Turnaround usually takes 1-3 weeks depending on complexity and current queue length. You'll get updates along the way.",
+            "category": "general",
+            "question": "Why should I commission this studio?",
+            "answer": "<p>We specialize in VTuber model creation and custom illustrations, offering high-quality results at budget-friendly prices. Our team of experienced artists is at your service.</p>",
             "open_by_default": true
           }
         },
-        "question-2": {
+        "question-general-2": {
           "type": "question",
           "settings": {
+            "category": "general",
+            "question": "How do I start a project?",
+            "answer": "<p>Simply contact us through the Contact section and ask for a quotation.</p>",
+            "open_by_default": true
+          }
+        },
+        "question-general-3": {
+          "type": "question",
+          "settings": {
+            "category": "general",
+            "question": "Is there any form to fill in for commissions?",
+            "answer": "<p>Once you placed the order, a requirement list would be sent for you to fill in.</p>",
+            "open_by_default": true
+          }
+        },
+        "category-pricing": {
+          "type": "category",
+          "settings": {
+            "category_title": "Price and Payments",
+            "category_key": "pricing"
+          }
+        },
+        "question-pricing-1": {
+          "type": "question",
+          "settings": {
+            "category": "pricing",
+            "question": "How much do your services cost?",
+            "answer": "<p>Our pricing is detailed in our Price List section. If you have a specific project in mind, feel free to contact us for a custom quote.</p>",
+            "open_by_default": true
+          }
+        },
+        "question-pricing-2": {
+          "type": "question",
+          "settings": {
+            "category": "pricing",
             "question": "What payment methods do you accept?",
-            "answer": "All major cards and PayPal are accepted at checkout, processed securely through Shopify.",
-            "open_by_default": false
+            "answer": "<p>We accept payments via PayPal, or you can place your order on our Fiverr and VGen page.</p>",
+            "open_by_default": true
           }
         },
-        "question-3": {
+        "question-pricing-3": {
           "type": "question",
           "settings": {
-            "question": "Can I request revisions?",
-            "answer": "Yes, each commission includes a set number of revision rounds so the final piece matches your vision.",
-            "open_by_default": false
+            "category": "pricing",
+            "question": "Do you offer payment plans?",
+            "answer": "<p>We prefer all payments are made in full upfront, but for clients with special needs, we do offer a two-part payment plan: 50% upfront to place the order and 50% before rigging begins.</p>",
+            "open_by_default": true
           }
         },
-        "question-4": {
+        "category-packages": {
+          "type": "category",
+          "settings": {
+            "category_title": "Packages and Services",
+            "category_key": "packages"
+          }
+        },
+        "question-packages-1": {
           "type": "question",
           "settings": {
-            "question": "Do you offer commercial usage rights?",
-            "answer": "Commercial licensing is available as an add-on. Reach out before ordering if you need it for a business or product.",
-            "open_by_default": false
+            "category": "packages",
+            "question": "What's included in a VTuber model package?",
+            "answer": "<p>Our VTuber packages typically include a fully rigged model, optional poses and expression toggles, and custom designs tailored to your specifications.</p>",
+            "open_by_default": true
+          }
+        },
+        "question-packages-2": {
+          "type": "question",
+          "settings": {
+            "category": "packages",
+            "question": "Can I request a certain artist and rigger for my model?",
+            "answer": "<p>We assign the artists and riggers based on their availability and their specialities. Clients who want to select specific artists or riggers may incur additional fees and longer wait times.</p>",
+            "open_by_default": true
+          }
+        },
+        "question-packages-3": {
+          "type": "question",
+          "settings": {
+            "category": "packages",
+            "question": "Do you offer art only or rig only commissions?",
+            "answer": "<p>We currently don't accept art-only or rig-only commissions, as we focus on providing complete art + rig packages to ensure the best quality and consistency.</p>",
+            "open_by_default": true
+          }
+        },
+        "category-others": {
+          "type": "category",
+          "settings": {
+            "category_title": "Others",
+            "category_key": "others"
+          }
+        },
+        "question-others-1": {
+          "type": "question",
+          "settings": {
+            "category": "others",
+            "question": "How long does it take to create a VTuber model?",
+            "answer": "<p>Please check our Queue Time section for reference.</p>",
+            "open_by_default": true
+          }
+        },
+        "question-others-2": {
+          "type": "question",
+          "settings": {
+            "category": "others",
+            "question": "Do you offer fast delivery?",
+            "answer": "<p>No, we don't.</p>",
+            "open_by_default": true
+          }
+        },
+        "question-others-3": {
+          "type": "question",
+          "settings": {
+            "category": "others",
+            "question": "What happens after I place the order?",
+            "answer": "<p>Our project manager would be communicating with you on your preferred platform as a bridge between you and the assigned artist and rigger for updates and feedback.</p>",
+            "open_by_default": true
+          }
+        },
+        "question-others-4": {
+          "type": "question",
+          "settings": {
+            "category": "others",
+            "question": "Can I request revisions on my VTuber model?",
+            "answer": "<p>Yes! We offer revisions during the design and rigging phases. Please check our process of work on our TOS section for reference.</p>",
+            "open_by_default": true
           }
         }
       },
-      "block_order": ["question-1", "question-2", "question-3", "question-4"],
+      "block_order": [
+        "category-general",
+        "question-general-1",
+        "question-general-2",
+        "question-general-3",
+        "category-pricing",
+        "question-pricing-1",
+        "question-pricing-2",
+        "question-pricing-3",
+        "category-packages",
+        "question-packages-1",
+        "question-packages-2",
+        "question-packages-3",
+        "category-others",
+        "question-others-1",
+        "question-others-2",
+        "question-others-3",
+        "question-others-4"
+      ],
       "settings": {}
     }
   },

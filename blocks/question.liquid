@@ -1,6 +1,8 @@
 {% doc %}
-  Renders a single FAQ accordion item with a question trigger and
-  a collapsible answer panel.
+  Renders a single flat, numbered FAQ accordion row with a question
+  trigger and a collapsible answer panel. The row number is generated
+  via a CSS counter that increments across all "question" blocks and
+  resets at each "category" block, so numbering restarts per group.
 
   @param {string} question - The FAQ question
   @param {string} [answer] - The FAQ answer
@@ -10,17 +12,21 @@
 {% enddoc %}
 
 <div
-  class="border-2 border-foreground rounded-md bg-background overflow-hidden transition-shadow duration-200 {% if block.settings.open_by_default %}shadow-hard{% endif %}"
+  class="border-b-2 border-foreground py-5 first:pt-0 last:border-b-0 [counter-increment:faq-counter]"
   {{ block.shopify_attributes }}
 >
   <button
     type="button"
-    class="flex items-center justify-between gap-4 w-full px-5 py-[1.1rem] max-sm:px-4 max-sm:py-[0.9rem] bg-transparent border-0 cursor-pointer text-left text-foreground"
+    class="flex items-center gap-4 w-full p-0 pb-4 bg-transparent border-0 border-b-2 border-foreground cursor-pointer text-left text-foreground"
     aria-expanded="{{ block.settings.open_by_default }}"
     data-faq-trigger
   >
-    <span class="m-0 text-base font-bold uppercase tracking-[0.01em] font-primary max-sm:text-[0.85rem]">{{ block.settings.question }}</span>
-    <span data-faq-icon class="shrink-0 w-8 h-8 rounded-full bg-accent text-white border-2 border-foreground inline-flex items-center justify-center transition-transform duration-300 {% if block.settings.open_by_default %}rotate-[135deg]{% endif %}" aria-hidden="true">
+    <span
+      aria-hidden="true"
+      class="shrink-0 w-8 font-primary text-base font-bold text-accent before:content-[counter(faq-counter,decimal-leading-zero)]"
+    ></span>
+    <span class="flex-1 m-0 text-base font-bold uppercase tracking-[0.01em] font-primary max-sm:text-[0.85rem]">{{ block.settings.question }}</span>
+    <span data-faq-icon class="shrink-0 w-6 h-6 inline-flex items-center justify-center transition-transform duration-300 {% if block.settings.open_by_default %}rotate-[135deg]{% endif %}" aria-hidden="true">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
         <line x1="12" y1="5" x2="12" y2="19"/>
         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -28,13 +34,13 @@
     </span>
   </button>
   <div
-    class="px-5 pb-5 max-sm:px-4 max-sm:pb-4"
+    class="pl-12 pt-4 max-sm:pl-10"
     data-faq-panel
     {% unless block.settings.open_by_default %}
       hidden
     {% endunless %}
   >
-    <p class="m-0 text-muted text-[0.95rem] leading-[1.6]">{{ block.settings.answer }}</p>
+    <p class="m-0 text-muted text-[0.95rem] leading-[1.6] max-w-[60ch]">{{ block.settings.answer }}</p>
   </div>
 </div>
 
@@ -53,6 +59,12 @@
       "id": "answer",
       "label": "Answer",
       "default": "Turnaround usually takes 1-3 weeks depending on complexity and current queue length."
+    },
+    {
+      "type": "text",
+      "id": "category",
+      "label": "Category key",
+      "info": "Optional. Match this to a Category block's key to keep questions grouped together."
     },
     {
       "type": "checkbox",

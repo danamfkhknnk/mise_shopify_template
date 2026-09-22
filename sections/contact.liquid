@@ -10,23 +10,49 @@
   <div class="max-w-[1400px] mx-auto px-6 py-16 md:py-24">
     <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
 
-      <div class="text-center mb-12 md:mb-16">
-        {% render 'badge', text: section.settings.badge_text %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 md:items-start">
+        <div>
+          {% render 'badge', text: section.settings.badge_text %}
 
-        {% if section.settings.heading != blank %}
-          <h1 class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase mt-4">
-            {{ section.settings.heading }}
-          </h1>
-        {% endif %}
+          {% if section.settings.heading != blank %}
+            <h1 class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase mt-4 md:text-left">
+              {{ section.settings.heading }}
+            </h1>
+          {% endif %}
 
-        {% if section.settings.description != blank %}
-          <div class="mt-4 text-base leading-relaxed text-accent max-w-[52ch] mx-auto [&_p]:m-0">
-            {{ section.settings.description }}
+          {% if section.settings.description != blank %}
+            <div class="mt-4 text-base leading-relaxed text-accent max-w-[52ch] [&_p]:m-0 md:text-left">
+              {{ section.settings.description }}
+            </div>
+          {% endif %}
+
+          <div class="mt-10 space-y-5">
+            {% for block in section.blocks %}
+              {% if block.type == 'social' %}
+                <div class="flex flex-col">
+                  {% if block.settings.platform != blank %}
+                    <span class="text-xs text-muted uppercase tracking-widest font-primary font-bold mb-2">
+                      {{ block.settings.platform }}
+                    </span>
+                  {% endif %}
+                  {% if block.settings.username != blank %}
+                    {% if block.settings.url != blank %}
+                      <a href="{{ block.settings.url }}" class="text-base text-foreground font-bold hover:text-accent transition-colors break-all">
+                        {{ block.settings.username }}
+                      </a>
+                    {% else %}
+                      <p class="text-base text-foreground font-bold m-0 break-all">
+                        {{ block.settings.username }}
+                      </p>
+                    {% endif %}
+                  {% endif %}
+                </div>
+              {% endif %}
+            {% endfor %}
           </div>
-        {% endif %}
-      </div>
+        </div>
 
-      <div class="max-w-[640px] mx-auto">
+        <div>
         {% form 'contact', class: 'flex flex-col gap-5' %}
           {% if form.posted_successfully? %}
             <div class="rounded-md border-2 border-foreground bg-background p-4 text-sm font-bold text-foreground" role="status">
@@ -62,6 +88,7 @@
               id="ContactForm-name"
               name="contact[name]"
               value="{{ form.name | default: customer.name }}"
+              placeholder="Your name"
               autocomplete="name"
               class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
             >
@@ -76,6 +103,7 @@
               id="ContactForm-email"
               name="contact[email]"
               value="{{ form.email | default: customer.email }}"
+              placeholder="your@email.com"
               autocomplete="email"
               autocorrect="off"
               autocapitalize="off"
@@ -93,6 +121,7 @@
               id="ContactForm-phone"
               name="contact[phone]"
               value="{{ form.phone }}"
+              placeholder="+1 (555) 000-0000"
               autocomplete="tel"
               class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
             >
@@ -106,6 +135,7 @@
               id="ContactForm-body"
               name="contact[body]"
               rows="6"
+              placeholder="Tell me about your project, ideas, or questions..."
               required
               class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
             >{{ form.body }}</textarea>
@@ -118,6 +148,7 @@
             {{ 'contact.form.send' | t }}
           </button>
         {% endform %}
+        </div>
       </div>
 
     </div>
@@ -127,6 +158,31 @@
 {% schema %}
 {
   "name": "Contact form",
+  "blocks": [
+    {
+      "type": "social",
+      "name": "Social media",
+      "settings": [
+        {
+          "type": "text",
+          "id": "platform",
+          "label": "Platform name",
+          "default": "Twitter"
+        },
+        {
+          "type": "text",
+          "id": "username",
+          "label": "Username or handle",
+          "default": "@yourhandle"
+        },
+        {
+          "type": "url",
+          "id": "url",
+          "label": "URL (optional)"
+        }
+      ]
+    }
+  ],
   "settings": [
     {
       "type": "text",
@@ -149,7 +205,33 @@
   ],
   "presets": [
     {
-      "name": "Contact form"
+      "name": "Contact form",
+      "blocks": [
+        {
+          "type": "social",
+          "settings": {
+            "platform": "Twitter",
+            "username": "@yourtwitter",
+            "url": "https://twitter.com"
+          }
+        },
+        {
+          "type": "social",
+          "settings": {
+            "platform": "Instagram",
+            "username": "@yourinstagram",
+            "url": "https://instagram.com"
+          }
+        },
+        {
+          "type": "social",
+          "settings": {
+            "platform": "Discord",
+            "username": "yourname#0000",
+            "url": ""
+          }
+        }
+      ]
     }
   ]
 }
