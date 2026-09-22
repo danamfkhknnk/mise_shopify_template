@@ -27,7 +27,7 @@
 
       <a href="{{ routes.cart_url }}" class="hover-rollup w-6 h-6 text-foreground relative [&_svg]:w-6 [&_svg]:h-6 [&_svg]:block">
         {% if cart.item_count > 0 %}
-          <span class="absolute -top-2 -right-2 text-[var(--color-accent)] text-sm font-bold font-primary z-10 leading-none" data-cart-count>
+          <span class="absolute -top-3 -right-3 bg-[var(--color-accent)] text-white text-xs font-bold font-primary z-10 leading-none rounded-full w-5 h-5 flex items-center justify-center" data-cart-count>
             {{ cart.item_count }}
           </span>
         {% endif %}
