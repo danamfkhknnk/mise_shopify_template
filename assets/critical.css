@@ -88,7 +88,6 @@ body {
 .card-bg-hero {
   background: linear-gradient(135deg, #f9f5f5 0%, #f5f0f8 50%, #f0f8f5 100%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: rgba(254, 94, 15, 0.5) !important;
 }
 
 .card-shadow {
@@ -103,8 +102,8 @@ body {
 .page-grid-bg {
   background-color: #ffffff;
   background-image:
-    linear-gradient(to right, rgba(17, 17, 17, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(17, 17, 17, 0.08) 1px, transparent 1px);
+    linear-gradient(to right, rgba(254, 94, 15, 0.5) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(254, 94, 15, 0.5) 1px, transparent 1px);
   background-size: 32px 32px;
   background-position: 0 0;
 }
