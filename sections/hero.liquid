@@ -4,7 +4,7 @@
 %}
 
 <div
-  class="full-width w-full mt-6"
+  class="full-width w-full overflow-hidden"
   data-hero
 >
 
@@ -95,7 +95,7 @@
     </div>
   </div>
     <!-- Mobile hero image - outside grid to avoid overflow clipping -->
-  <div class="relative z-0 -mt-48 h-[440px] md:hidden w-full -mx-6" data-hero-media>
+  <div class="relative z-0 -mt-48 h-[440px] md:hidden w-full -mx-6 overflow-hidden" data-hero-media>
     {% if hero_image %}
       {{
         hero_image
