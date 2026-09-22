@@ -200,17 +200,14 @@ button:hover > .hover-rollup .hover-rollup__item {
 }
 
 /**
- * Page transition: a quick, flat dim on every navigation. Kept short
- * and simple on purpose so it never outlasts (or delays) a page's own
- * entrance animations. See the script in layout/theme.liquid.
+ * Page transition: invisible overlay for smooth AJAX navigation.
+ * No background color - purely for layout without visual blocking.
  */
 .page-transition {
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  background-color: var(--color-foreground);
-  opacity: 0.5;
   transition: opacity 0.2s ease;
 }
 
