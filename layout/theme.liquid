@@ -110,15 +110,54 @@
 
           event.preventDefault();
           close(function () {
-            window.location.href = url.href;
+            loadPageAjax(url.href);
           });
         });
+
+        function loadPageAjax(href) {
+          fetch(href)
+            .then(function(response) {
+              if (!response.ok) throw new Error('Network response was not ok');
+              return response.text();
+            })
+            .then(function(html) {
+              var parser = new DOMParser();
+              var newDoc = parser.parseFromString(html, 'text/html');
+              var newContent = newDoc.querySelector('[data-page-content]') ||
+                              newDoc.body;
+
+              var currentContent = document.querySelector('[data-page-content]') ||
+                                  document.querySelector('main') ||
+                                  document.body;
+
+              if (newContent && currentContent) {
+                currentContent.innerHTML = newContent.innerHTML;
+              }
+
+              window.history.pushState({}, '', href);
+
+              // Trigger re-initialization if needed
+              if (window.Shopify && window.Shopify.onContentLoaded) {
+                window.Shopify.onContentLoaded();
+              }
+
+              // Dispatch custom event for re-initializing scripts
+              document.dispatchEvent(new CustomEvent('page:loaded', { detail: { url: href } }));
+            })
+            .catch(function(error) {
+              console.error('AJAX navigation failed:', error);
+              window.location.href = href;
+            });
+        }
+      });
       })();
     </script>
 
     {% sections 'header-group' %}
 
-    {{ content_for_layout }}
+    <div data-page-content>
+      {{ content_for_layout }}
+    </div>
 
     {% sections 'footer-group' %}
 
