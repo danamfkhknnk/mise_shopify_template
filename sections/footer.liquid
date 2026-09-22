@@ -5,16 +5,6 @@
   <div class="flex flex-col max-w-[1400px] mx-auto">
     <div class="flex items-start justify-between gap-4">
       <p class="m-0 font-primary text-xl font-extrabold tracking-[0.02em] uppercase no-underline">{{ shop.name | link_to: routes.root_url }}</p>
-
-      {% if section.settings.show_clock %}
-        <div
-          class="font-primary text-base font-medium tracking-[0.05em] [font-variant-numeric:tabular-nums]"
-          data-footer-clock
-          aria-live="polite"
-        >
-          00:00:00
-        </div>
-      {% endif %}
     </div>
 
     <div class="flex flex-col items-center text-center gap-5 py-14 px-4">
@@ -74,27 +64,6 @@
 </footer>
 
 {% javascript %}
-  (function () {
-    var clocks = document.querySelectorAll('[data-footer-clock]');
-    if (!clocks.length) return;
-
-    function pad(value) {
-      return String(value).padStart(2, '0');
-    }
-
-    function tick(clock) {
-      var now = new Date();
-      clock.textContent = pad(now.getHours()) + ':' + pad(now.getMinutes()) + ':' + pad(now.getSeconds());
-    }
-
-    clocks.forEach(function (clock) {
-      tick(clock);
-      setInterval(function () {
-        tick(clock);
-      }, 1000);
-    });
-  })();
-
   (function () {
     function init() {
       var helpers = window.ArthehopeAnims;
@@ -198,12 +167,6 @@
       "type": "url",
       "id": "button_url",
       "label": "t:labels.button_url"
-    },
-    {
-      "type": "checkbox",
-      "id": "show_clock",
-      "label": "t:labels.show_clock",
-      "default": true
     },
     {
       "type": "link_list",
