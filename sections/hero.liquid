@@ -8,7 +8,7 @@
   data-hero
 >
   <div class="grid grid-cols-1 md:grid-cols-2 lg:pt-0 md:pt-10 pt-20 items-center max-w-[1400px] mx-auto px-6 gap-0">
-    <div class="relative z-0 flex items-center justify-center md:justify-end">
+    <div class="relative z-0 flex items-center justify-center md:justify-end ">
       <div class="relative card-bg-hero border-2 border-foreground rounded-md p-8 md:p-10 max-w-[520px] card-shadow">
         {% render 'badge', text: section.settings.badge_text %}
 
@@ -44,7 +44,7 @@
         {% endif %}
 
         {% if section.settings.show_rating %}
-          <div data-hero-rating class="flex items-center flex-wrap gap-x-3 gap-y-2 mt-6">
+          <div data-hero-rating class="flex flex-col md:flex-ro items-start md:items-center flex-wrap gap-x-3 gap-y-2 mt-6">
             <div class="flex gap-0.5 text-[#F5A623]" data-hero-stars aria-hidden="true">
               {% for i in (1..5) %}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -69,13 +69,13 @@
       </div>
     </div>
 
-    <div class="relative z-0 -mt-32 md:mt-0 md:-ml-16" data-hero-media>
+    <div class="relative z-0 -mt-32 h-[380px] overflow-hidden md:mt-0 md:-ml-16 md:h-0 md:overflow-visible" data-hero-media>
       {% if hero_image %}
         {{
           hero_image
           | image_url: width: 1400
           | image_tag:
-            class: 'w-full h-auto lg:h-[760px] object-cover object-top',
+            class: 'absolute -right-16 h-[400px] object-cover object-top md:static md:w-full md:h-auto lg:h-[760px]',
             loading: 'eager',
             sizes: '(min-width: 1024px) 50vw, 100vw'
         }}
@@ -83,12 +83,12 @@
         <img
           src="{{ section.settings.image_url }}"
           alt="{{ section.settings.heading | escape }}"
-          class="w-full h-auto lg:h-[760px] object-cover object-top"
+          class="absolute -right-16 h-[400px] object-cover object-top md:static md:w-full md:h-auto lg:h-[760px]"
           loading="eager"
           sizes="(min-width: 1024px) 50vw, 100vw"
         >
       {% else %}
-        <div class="w-full h-[320px] lg:h-[760px] bg-muted"></div>
+        <div class="absolute -right-16 h-[400px] w-[400px] object-cover object-top md:static md:w-full md:h-auto lg:h-[760px] bg-muted"></div>
       {% endif %}
     </div>
   </div>

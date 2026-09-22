@@ -1,0 +1,31 @@
+{% doc %}
+  Renders a social media icon based on platform name.
+
+  @param {string} platform - The platform name (Twitter, Instagram, Discord, Email, VGen)
+
+  @example
+  {% render 'social-icon', platform: 'Twitter' %}
+{% enddoc %}
+
+{% liquid
+  assign platform_lower = platform | downcase
+  assign icon_file = ''
+
+  if platform_lower contains 'twitter' or platform_lower contains 'x'
+    assign icon_file = 'icon-social-x.svg'
+  elsif platform_lower contains 'instagram'
+    assign icon_file = 'icon-social-instagram.svg'
+  elsif platform_lower contains 'discord'
+    assign icon_file = 'icon-social-discord.svg'
+  elsif platform_lower contains 'email'
+    assign icon_file = 'icon-social-email.svg'
+  elsif platform_lower contains 'vgen'
+    assign icon_file = 'icon-social-vgen.svg'
+  endif
+%}
+
+{% if icon_file != blank %}
+  <span class="inline-flex shrink-0 w-5 h-5 text-foreground [&_svg]:w-full [&_svg]:h-full [&_svg]:block">
+    {{ icon_file | inline_asset_content }}
+  </span>
+{% endif %}

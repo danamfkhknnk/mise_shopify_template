@@ -25,12 +25,12 @@
         </span>
       </a>
 
+      {% if cart.item_count > 0 %}
+        <span class="absolute top-3 right-[68px] md:right-7 text-foreground text-sm font-primary z-10 leading-none w-4 bg-accent rounded-full h-4 flex items-center justify-center" data-cart-count>
+          {{ cart.item_count }}
+        </span>
+      {% endif %}
       <a href="{{ routes.cart_url }}" class="hover-rollup w-6 h-6 text-foreground relative [&_svg]:w-6 [&_svg]:h-6 [&_svg]:block">
-        {% if cart.item_count > 0 %}
-          <span class="absolute -top-3 -right-3 bg-[var(--color-accent)] text-white text-xs font-bold font-primary z-10 leading-none rounded-full w-5 h-5 flex items-center justify-center" data-cart-count>
-            {{ cart.item_count }}
-          </span>
-        {% endif %}
         <span class="w-6 h-6 shrink-0 hover-rollup__item">
           {{ 'icon-cart.svg' | inline_asset_content }}
         </span>
