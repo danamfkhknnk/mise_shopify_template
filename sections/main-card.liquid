@@ -120,11 +120,11 @@
                   {{ 'folder-back.svg' | inline_asset_content }}
                 </div>
                 {% if type_entries.size > 0 %}
-                  <div class="portfolio-folder__peek absolute left-[14%] right-[14%] bottom-[10%] h-[58%] z-[1] overflow-hidden translate-y-[-35%] opacity-40 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-[-110%] group-hover:opacity-100 group-focus-within:translate-y-[-170%] group-focus-within:opacity-100" aria-hidden="true">
+                  <div class="portfolio-folder__peek absolute left-[14%] right-[14%] bottom-[10%] h-[58%] z-[1] overflow-hidden translate-y-[-35%] transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-[-110%] group-focus-within:translate-y-[-170%]" aria-hidden="true">
                     {% for entry in type_entries limit: 3 %}
                       {% assign peek_alt = entry.desc | strip_html | strip_newlines | strip %}
                       <div
-                        class="portfolio-folder__peek-img absolute inset-[6%] rounded bg-white border border-foreground/10 shadow-small
+                        class="portfolio-folder__peek-img absolute inset-[6%] rounded bg-white border border-foreground/10 shadow-small opacity-50 transition-opacity duration-500 group-hover:opacity-100
                           {% if forloop.index == 1 %}z-[3] rotate-0
                           {% elsif forloop.index == 2 %}z-[2] -rotate-6 -translate-x-3
                           {% else %}z-[1] rotate-6 translate-x-3{% endif %}"
