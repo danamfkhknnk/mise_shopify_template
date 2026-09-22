@@ -88,6 +88,7 @@ body {
 .card-bg-hero {
   background: linear-gradient(135deg, #f9f5f5 0%, #f5f0f8 50%, #f0f8f5 100%);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: rgba(254, 94, 15, 0.5) !important;
 }
 
 .card-shadow {
