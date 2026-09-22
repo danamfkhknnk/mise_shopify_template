@@ -10,7 +10,7 @@
   endfor
 %}
 
-<div class="full-width w-full" data-service>
+<div class="full-width w-full" id="service" data-service>
   <div class="max-w-[1400px] mx-auto mt-4 px-6 py-16 md:py-24">
     <div class="card-bg-hero border-2 border-foreground rounded-md p-8 md:p-12 card-shadow">
 
@@ -481,6 +481,10 @@
   }
   [data-service-card]:hover .view-link {
     gap: 0.5rem;
+  }
+
+  #service {
+    scroll-margin-top: 120px;
   }
 </style>
 

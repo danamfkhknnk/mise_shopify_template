@@ -3,28 +3,28 @@
   "threshold": 0.5,
   "results": {
     "desktop": {
-      "status": "FAIL",
+      "status": "PASS",
       "source": "baseline",
-      "diffPixels": 211721,
-      "diffPercentage": 14.36
+      "diffPixels": 6875,
+      "diffPercentage": 0.47
     },
     "large-desktop": {
-      "status": "FAIL",
+      "status": "PASS",
       "source": "baseline",
-      "diffPixels": 200100,
-      "diffPercentage": 17.37
+      "diffPixels": 0,
+      "diffPercentage": 0
     },
     "mobile": {
       "status": "FAIL",
       "source": "baseline",
-      "diffPixels": 106871,
-      "diffPercentage": 32.47
+      "diffPixels": 45352,
+      "diffPercentage": 13.78
     },
     "tablet": {
-      "status": "FAIL",
+      "status": "PASS",
       "source": "baseline",
-      "diffPixels": 187730,
-      "diffPercentage": 23.87
+      "diffPixels": 2358,
+      "diffPercentage": 0.3
     }
   }
 }
