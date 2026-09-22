@@ -4,9 +4,10 @@
 %}
 
 <div
-  class="full-width w-full"
+  class="full-width w-full mt-6"
   data-hero
 >
+
   <div class="grid grid-cols-1 md:grid-cols-2 lg:pt-0 md:pt-10 pt-20 items-center max-w-[1400px] mx-auto px-6 gap-0">
     <div class="relative z-0 flex items-center justify-center md:justify-end ">
       <div class="relative card-bg-hero border-2 border-foreground rounded-md p-8 md:p-10 max-w-[520px] card-shadow">
@@ -44,7 +45,7 @@
         {% endif %}
 
         {% if section.settings.show_rating %}
-          <div data-hero-rating class="flex flex-col md:flex-ro items-start md:items-center flex-wrap gap-x-3 gap-y-2 mt-6">
+          <div data-hero-rating class="flex flex-col md:flex-row items-start md:items-center flex-wrap gap-x-3 gap-y-2 mt-6">
             <div class="flex gap-0.5 text-[#F5A623]" data-hero-stars aria-hidden="true">
               {% for i in (1..5) %}
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -69,32 +70,56 @@
       </div>
     </div>
 
-    <div class="relative z-0 -mt-32 h-[380px] overflow-hidden md:mt-0 md:-ml-16 md:h-0 md:overflow-visible" data-hero-media>
+    <!-- Tablet and above hero image - inside grid -->
+    <div class="relative z-0 hidden md:flex justify-center md:mt-0 md:-ml-16" data-hero-media>
       {% if hero_image %}
         {{
           hero_image
           | image_url: width: 1400
           | image_tag:
-            class: 'absolute -right-16 h-[400px] object-cover object-top md:static md:w-full md:h-auto lg:h-[760px]',
+            class: 'w-auto h-auto lg:h-[760px]',
             loading: 'eager',
-            sizes: '(min-width: 1024px) 50vw, 100vw'
+            sizes: '(min-width: 1024px) 50vw, (min-width: 768px) 50vw'
         }}
       {% elsif section.settings.image_url != blank %}
         <img
           src="{{ section.settings.image_url }}"
           alt="{{ section.settings.heading | escape }}"
-          class="absolute -right-16 h-[400px] object-cover object-top md:static md:w-full md:h-auto lg:h-[760px]"
+          class="w-full h-auto lg:h-[760px]"
           loading="eager"
-          sizes="(min-width: 1024px) 50vw, 100vw"
+          sizes="(min-width: 1024px) 50vw, (min-width: 768px) 50vw"
         >
       {% else %}
-        <div class="absolute -right-16 h-[400px] w-[400px] object-cover object-top md:static md:w-full md:h-auto lg:h-[760px] bg-muted"></div>
+        <div class="w-auto h-auto lg:h-[760px] bg-muted"></div>
       {% endif %}
     </div>
   </div>
+    <!-- Mobile hero image - outside grid to avoid overflow clipping -->
+  <div class="relative z-0 -mt-48 h-[440px] md:hidden w-full -mx-6" data-hero-media>
+    {% if hero_image %}
+      {{
+        hero_image
+        | image_url: width: 1400
+        | image_tag:
+          class: 'w-full h-[460px] object-cover object-top',
+          loading: 'eager',
+          sizes: '100vw'
+      }}
+    {% elsif section.settings.image_url != blank %}
+      <img
+        src="{{ section.settings.image_url }}"
+        alt="{{ section.settings.heading | escape }}"
+        class="w-full h-[460px] object-cover object-top"
+        loading="eager"
+        sizes="100vw"
+      >
+    {% else %}
+      <div class="w-full h-[460px] bg-muted"></div>
+    {% endif %}
+  </div>
 
   {% if section.settings.marquee_text != blank %}
-    <div class="full-width relative z-10 overflow-hidden mt-2 bg-accent border-t-2 border-b-2 border-foreground" aria-hidden="true">
+    <div class="full-width relative z-10 overflow-hidden bg-accent border-t-2 border-b-2 border-foreground" aria-hidden="true">
       <div class="flex items-center gap-8 whitespace-nowrap py-3 font-primary font-bold uppercase text-lg w-max animate-hero-marquee motion-reduce:animate-none">
         {% for i in (1..12) %}
           <div class="flex items-center gap-10 shrink-0 text-white">
@@ -120,7 +145,8 @@
 
       var words = helpers.splitWords(hero.querySelector('[data-hero-heading]'));
       var stars = hero.querySelectorAll('[data-hero-stars] svg');
-      var media = hero.querySelector('[data-hero-media]');
+      var mediaElements = hero.querySelectorAll('[data-hero-media]');
+      var media = mediaElements.length > 0 ? mediaElements[mediaElements.length - 1] : null;
       var mediaImg = media ? media.querySelector('img') : null;
 
       var tl = window.gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -156,10 +182,13 @@
         tl.from(avatars, { scale: 0, transformOrigin: 'center', duration: 0.4, ease: 'back.out(1.7)', stagger: 0.08 }, '-=0.4');
       }
 
-      if (media) {
-        tl.from(media, { clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.out' }, 0.1);
-        if (mediaImg) tl.from(mediaImg, { scale: 1.25, duration: 1.1, ease: 'power3.out' }, 0.1);
-      }
+      mediaElements.forEach(function(mediaEl) {
+        if (mediaEl) {
+          tl.from(mediaEl, { clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.out' }, 0.1);
+          var img = mediaEl.querySelector('img');
+          if (img) tl.from(img, { scale: 1.25, duration: 1.1, ease: 'power3.out' }, 0.1);
+        }
+      });
 
       if (window.ScrollTrigger) {
         window.gsap.registerPlugin(window.ScrollTrigger);
