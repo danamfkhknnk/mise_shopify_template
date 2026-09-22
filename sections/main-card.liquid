@@ -116,11 +116,11 @@
               aria-label="{{ folder_title | escape }} — view all"
             >
               <div class="relative mx-auto w-full max-w-[160px]">
-                <div class="relative z-0 text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto" aria-hidden="true">
+                <div class="relative z-0 text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto [&_svg]:drop-shadow-lg" aria-hidden="true">
                   {{ 'folder-back.svg' | inline_asset_content }}
                 </div>
                 {% if type_entries.size > 0 %}
-                  <div class="portfolio-folder__peek absolute left-[14%] right-[14%] bottom-[10%] h-[58%] z-[1] overflow-hidden translate-y-[4%] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-translate-y-[110%] group-focus-within:-translate-y-[170%]" aria-hidden="true">
+                  <div class="portfolio-folder__peek absolute left-[14%] right-[14%] bottom-[10%] h-[58%] z-[1] overflow-hidden translate-y-[-35%] opacity-40 transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-[-110%] group-hover:opacity-100 group-focus-within:translate-y-[-170%] group-focus-within:opacity-100" aria-hidden="true">
                     {% for entry in type_entries limit: 3 %}
                       {% assign peek_alt = entry.desc | strip_html | strip_newlines | strip %}
                       <div
@@ -143,7 +143,7 @@
                     {% endfor %}
                   </div>
                 {% endif %}
-                <div class="absolute inset-0 z-[2] pointer-events-none text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto" aria-hidden="true">
+                <div class="absolute inset-0 z-[2] pointer-events-none text-accent [&_svg]:block [&_svg]:w-full [&_svg]:h-auto [&_svg]:drop-shadow-lg" aria-hidden="true">
                   {{ 'folder-front.svg' | inline_asset_content }}
                 </div>
               </div>
