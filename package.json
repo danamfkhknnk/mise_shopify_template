@@ -9,6 +9,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "ui:screenshot": "node scripts/visual/screenshot.mjs",
     "ui:compare": "node scripts/visual/compare.mjs",
+    "ui:product": "node scripts/visual/product-check.mjs",
+    "ui:cart": "node scripts/visual/cart-check.mjs",
+    "ui:service": "node scripts/visual/service-check.mjs",
     "ui:check": "npm run ui:screenshot && npm run ui:compare"
   },
   "keywords": [],

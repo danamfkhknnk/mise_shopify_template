@@ -9,8 +9,8 @@
 {% enddoc %}
 
 <div class="full-width w-full">
-  <div class="max-w-[1400px] mx-auto px-6 py-16 md:py-24">
-    <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
+  <div class="max-w-[1400px] mx-auto mt-4 px-6 py-16 md:py-24">
+    <div class="card-bg-hero border-2 border-foreground rounded-md p-8 md:p-12 card-shadow">
 
       <div class="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-10 md:gap-16">
 
@@ -33,7 +33,7 @@
             <a
               href="{{ section.settings.cta_url | default: '/pages/contact' }}"
               data-magnetic
-              class="mt-8 font-primary inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 no-underline"
+              class="mt-8 font-primary hidden md:inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 no-underline"
             >
               {% if section.settings.cta_heading != blank %}
                 <span class="hover-rollup leading-[1.3] h-[1.3em]">
@@ -53,10 +53,30 @@
 
         <div class="flex flex-col [counter-reset:faq-counter]" data-faq-list>
           {% content_for 'blocks' %}
+          {% if section.settings.cta_heading != blank or section.settings.cta_link_text != blank %}
+          <div class="flex justify-center md:hidden">
+            <a
+                href="{{ section.settings.cta_url | default: '/pages/contact' }}"
+                data-magnetic
+                class="mt-8 font-primary md:hidden inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 text-center py-3 no-underline"
+              >
+                {% if section.settings.cta_heading != blank %}
+                  <span class="hover-rollup leading-[1.3] h-[1.3em]">
+                    <span class="hover-rollup__item">{{ section.settings.cta_heading }}</span>
+                    <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.cta_heading }}</span>
+                  </span>
+                {% endif %}
+                <span class="inline-flex shrink-0" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                    <polyline points="12 5 19 12 12 19"/>
+                  </svg>
+                </span>
+              </a>
+            </div>
+          {% endif %}
         </div>
-
       </div>
-
     </div>
   </div>
 </div>

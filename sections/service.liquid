@@ -11,8 +11,8 @@
 %}
 
 <div class="full-width w-full" data-service>
-  <div class="max-w-[1400px] mx-auto px-6 py-16 md:py-24">
-    <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
+  <div class="max-w-[1400px] mx-auto mt-4 px-6 py-16 md:py-24">
+    <div class="card-bg-hero border-2 border-foreground rounded-md p-8 md:p-12 card-shadow">
 
       {% comment %} Hero header {% endcomment %}
       <div class="text-center mb-12 md:mb-16">
@@ -48,7 +48,7 @@
         {% endfor %}
         {% assign tags_array = tags_collected | split: '|' %}
         {% if tags_array.size > 1 %}
-          <div data-service-filters class="mb-10 flex flex-nowrap gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden justify-center">
+          <div data-service-filters class="mb-10 flex flex-nowrap gap-3 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <button
               data-filter="all"
               class="service-filter service-filter--active shrink-0 px-5 py-2 rounded-md font-primary text-sm font-bold uppercase tracking-wide cursor-pointer"
@@ -438,6 +438,14 @@
 </div>
 
 <style>
+  /* Filter bubbles: centered when they fit, but start-aligned when they
+     overflow — plain `justify-center` would trap the scroll position in
+     the middle and cut off the first tag on mobile/tablet. */
+  [data-service-filters] {
+    justify-content: center;
+    justify-content: safe center;
+  }
+
   /* Card hover: lift + shadow grow */
   [data-service-card] {
     transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 1s cubic-bezier(0.16, 1, 0.3, 1);

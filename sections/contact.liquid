@@ -8,14 +8,14 @@
 
 <div class="full-width w-full">
   <div class="max-w-[1400px] mx-auto px-6 py-16 md:py-24">
-    <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
+    <div class="card-bg-hero border-2 border-foreground rounded-md p-8 md:p-12 card-shadow">
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 md:items-start">
         <div>
           {% render 'badge', text: section.settings.badge_text %}
 
           {% if section.settings.heading != blank %}
-            <h1 class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase mt-4 md:text-left">
+            <h1 class="font-primary m-0 text-[clamp(2rem,5vw,3.5rem)] font-bold leading-[1.05] uppercase md:text-left">
               {{ section.settings.heading }}
             </h1>
           {% endif %}
@@ -61,7 +61,7 @@
           {% endif %}
 
           {% if form.errors %}
-            <div class="rounded-md border-2 border-foreground bg-white p-4 text-sm text-foreground" role="alert">
+            <div class="rounded-md border-2 border-foreground card-bg-hero p-4 text-sm text-foreground card-shadow" role="alert">
               <p class="m-0 mb-2 font-primary text-xs font-bold uppercase tracking-wide">{{ 'contact.form.error_heading' | t }}</p>
               <ul class="m-0 pl-5 list-disc">
                 {% for field in form.errors %}
@@ -90,7 +90,7 @@
               value="{{ form.name | default: customer.name }}"
               placeholder="Your name"
               autocomplete="name"
-              class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
+              class="rounded-md border-2 border-foreground card-bg-hero px-4 py-3 text-sm text-foreground focus:outline-none card-shadow"
             >
           </div>
 
@@ -108,7 +108,7 @@
               autocorrect="off"
               autocapitalize="off"
               required
-              class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
+              class="rounded-md border-2 border-foreground card-bg-hero px-4 py-3 text-sm text-foreground focus:outline-none card-shadow"
             >
           </div>
 
@@ -123,7 +123,7 @@
               value="{{ form.phone }}"
               placeholder="+1 (555) 000-0000"
               autocomplete="tel"
-              class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
+              class="rounded-md border-2 border-foreground card-bg-hero px-4 py-3 text-sm text-foreground focus:outline-none card-shadow"
             >
           </div>
 
@@ -137,7 +137,7 @@
               rows="6"
               placeholder="Tell me about your project, ideas, or questions..."
               required
-              class="rounded-md border-2 border-foreground bg-white px-4 py-3 text-sm text-foreground focus:outline-none"
+              class="rounded-md border-2 border-foreground card-bg-hero px-4 py-3 text-sm text-foreground focus:outline-none card-shadow"
             >{{ form.body }}</textarea>
           </div>
 

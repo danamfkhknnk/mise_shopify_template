@@ -7,7 +7,7 @@
 
 <div class="main-card full-width w-full">
   <div class="max-w-[1400px] mx-auto px-6 py-12 md:py-20">
-    <div class="bg-white border-2 border-foreground rounded-md p-8 md:p-12">
+    <div class="card-bg-hero border-2 border-foreground rounded-md p-8 md:p-12 card-shadow">
       {% comment %} About section {% endcomment %}
       <div id="about" class="grid grid-cols-1 md:grid-cols-2 md:items-stretch gap-10 md:gap-16 scroll-mt-0 md:scroll-mt-2 lg:scroll-mt-32">
         <div>
@@ -178,7 +178,7 @@
           </button>
 
           <figure class="flex flex-col items-center max-w-[92vw] md:max-w-4xl translate-y-16 scale-95 opacity-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]" data-folder-lightbox-figure>
-            <img class="max-w-full max-h-[75vh] object-contain rounded-md border-2 border-foreground bg-white shadow-hard" data-folder-lightbox-img src="" alt="">
+            <img class="max-w-full max-h-[75vh] object-contain rounded-md border-2 border-foreground card-bg-hero shadow-hard" data-folder-lightbox-img src="" alt="">
             <figcaption class="mt-4 text-center max-w-[70ch]">
               <h3 class="font-primary text-lg md:text-xl font-bold uppercase mt-1 mb-0 text-foreground" data-folder-lightbox-title></h3>
               <p class="text-sm text-accent mt-2 mb-0" data-folder-lightbox-desc></p>
@@ -253,7 +253,6 @@
                               class="border-2 border-foreground rounded-md overflow-hidden bg-background"
                               style="aspect-ratio: {{ card_ratio_w }} / {{ card_ratio_h }};"
                               data-gallery-card
-                              data-full="{{ card_image | image_url: width: 1600 }}"
                             >
                               {% if card_image %}
                                 {{
@@ -383,19 +382,10 @@
             </div>
           </div>
         {% endif %}
-          </div>
         </div>
-
-        <dialog class="border-2 border-foreground rounded-xl p-0 max-w-[min(90vw,700px)] bg-background" data-gallery-lightbox aria-label="Drawing preview">
-          <button type="button" class="absolute top-2 right-2 w-9 h-9 rounded-full border-2 border-foreground bg-accent text-white cursor-pointer inline-flex items-center justify-center" data-gallery-close aria-label="Close preview">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
-              <line x1="6" y1="6" x2="18" y2="18"/>
-              <line x1="18" y1="6" x2="6" y2="18"/>
-            </svg>
-          </button>
-        </dialog>
       </div>
-</div>
+    </div>
+  </div>
 
 {% stylesheet %}
   /* State hooks that can't be expressed with Tailwind alone.
@@ -408,10 +398,6 @@
 
   .portfolio-folder:nth-child(even) .portfolio-folder__label {
     transform: rotate(1.5deg);
-  }
-
-  [data-gallery-lightbox]::backdrop {
-    background: rgba(17, 17, 17, 0.6);
   }
 
   /* FAQ open state is toggled at runtime by JS (see below) */
@@ -579,57 +565,6 @@
         }
       });
     }
-
-    var lightbox = document.querySelector('[data-gallery-lightbox]');
-
-    /* The preview image is created on demand so no broken/empty <img>
-       sits in the markup (and theme-check has no static img to flag). */
-    function getLightboxImg() {
-      if (!lightbox) return null;
-      var img = lightbox.querySelector('[data-gallery-img]');
-      if (!img) {
-        img = document.createElement('img');
-        img.setAttribute('data-gallery-img', '');
-        img.alt = '';
-        img.className = 'block w-full h-auto max-h-[80vh] object-contain';
-        lightbox.insertBefore(img, lightbox.firstChild);
-      }
-      return img;
-    }
-
-    function openLightbox(src) {
-      if (!lightbox || typeof lightbox.showModal !== 'function') return;
-      var img = getLightboxImg();
-      if (img) img.src = src;
-      if (!lightbox.open) lightbox.showModal();
-      if (window.gsap && window.ArthehopeAnims && !window.ArthehopeAnims.prefersReduced() && img) {
-        window.gsap.from(img, { scale: 0.9, autoAlpha: 0, duration: 0.35, ease: 'back.out(1.5)', clearProps: 'all' });
-      }
-    }
-
-    if (lightbox) {
-      document.addEventListener('click', function (event) {
-        var card = event.target.closest('[data-gallery-card]');
-        if (card && card.dataset.full) {
-          openLightbox(card.dataset.full);
-          return;
-        }
-        if (event.target.closest('[data-gallery-close]')) lightbox.close();
-      });
-
-      document.addEventListener('keydown', function (event) {
-        if (event.key !== 'Enter' && event.key !== ' ') return;
-        var card = event.target.closest && event.target.closest('[data-gallery-card]');
-        if (card && card.dataset.full) {
-          event.preventDefault();
-          openLightbox(card.dataset.full);
-        }
-      });
-
-      lightbox.addEventListener('click', function (event) {
-        if (event.target === lightbox) lightbox.close();
-      });
-    }
   })();
 
   /* Randomize which gallery photo lands in which marquee slot. The 3
@@ -661,14 +596,12 @@
         pool.push({
           src: img ? img.src : '',
           alt: img ? img.alt : '',
-          full: card.getAttribute('data-full') || '',
           aspectRatio: card.style.aspectRatio || ''
         });
       });
     });
 
     function applyCardData(card, data) {
-      card.setAttribute('data-full', data.full);
       card.style.aspectRatio = data.aspectRatio;
       var img = card.querySelector('img');
       if (img) {

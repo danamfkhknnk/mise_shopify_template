@@ -84,6 +84,30 @@ body {
   color: var(--color-foreground);
 }
 
+/** Card background with hero-inspired gradient */
+.card-bg-hero {
+  background: linear-gradient(135deg, #f9f5f5 0%, #f5f0f8 50%, #f0f8f5 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-shadow {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/**
+ * Page background: graph-paper grid lines (like the reference).
+ * Thin 1px lines every 32px, using foreground at low opacity so it
+ * adapts to theme settings. Replaces the old checkerboard pattern.
+ */
+.page-grid-bg {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(to right, rgba(17, 17, 17, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 17, 17, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: 0 0;
+}
+
 /** Section layout utilities */
 
 /**
