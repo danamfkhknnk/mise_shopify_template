@@ -5,7 +5,7 @@
   assign gallery_types = gallery_entries | map: 'type' | uniq
 %}
 
-<div class="main-card full-width w-full">
+<div class="main-card full-width w-full overflow-hidden">
   <div class="max-w-[1400px] mx-auto px-6 py-12 md:py-20">
     <div class="card-bg-hero border-2 border-foreground rounded-md p-8 md:p-12 card-shadow">
       {% comment %} About section {% endcomment %}
