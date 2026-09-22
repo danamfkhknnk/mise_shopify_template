@@ -1,1224 +1,386 @@
 # AGENTS.md
 
-🚨 MANDATORY: YOU MUST CALL "learn_shopify_api" ONCE WHEN WORKING WITH LIQUID THEMES.
+## Shopify Theme Development
 
-Use the [Shopify AI Toolkit](https://shopify.dev/docs/apps/build/ai-toolkit) for all Shopify API and platform work. If missing, install it in the agent host per that page (or `npx skills add Shopify/shopify-ai-toolkit --list` for skill-compatible hosts).
+- Follow Shopify Liquid theme architecture and best practices.
+- When working with Shopify Liquid themes, call `learn_shopify_api` once.
+- Use Shopify AI Toolkit for Shopify API/platform work.
+- Prefer reusable, modular components over large monolithic sections.
+- Keep implementation clear and consistent rather than clever.
 
 ## Theme Color Palette
 
-**Always use this palette for default values in Liquid files. Reference images may show different colors — always follow this palette instead.**
+Use this palette as the default theme palette. Reference images do not override it.
 
-| Role | Hex | RGB | Usage |
-|------|-----|-----|-------|
-| Background | `#F0F0F0` | `rgb(240, 240, 240)` | Card backgrounds, light surfaces |
-| Primary | `#FE5E0F` | `rgb(252, 94, 15)` | Badge bg, accent color, stat values, interactive elements |
-| Secondary | `#6B6B6B` | `rgb(107, 107, 107)` | Muted text, helper text, secondary info |
-| Foreground | `#111111` | `rgb(17, 17, 17)` | Primary text, borders, darkest elements |
+| Role | Color |
+|---|---|
+| Background | `#F0F0F0` |
+| Primary / accent | `#FE5E0F` |
+| Secondary / muted | `#6B6B6B` |
+| Foreground / text / border | `#111111` |
+| Card / surface | `#FFFFFF` |
+| Text on dark | `#FFFFFF` |
 
-- **Checkerboard**: white + `#F0F0F0` (light grey)
-- **Cards/surfaces**: `#FFFFFF` (white) — high contrast on light grey bg
-- **Text on dark**: `#FFFFFF` (white)
-- **Primary text**: `#111111` (dark)
-- **Accent**: `#FE5E0F` (orange)
+## Shopify Theme Structure
 
-Palette reference file: `assets/color.png`
-
-## Theme Architecture
-
-**Key principles: focus on generating snippets, blocks, and sections; users may create templates using the theme editor**
-
-### Directory structure
-
-```
-.
-├── assets          # Stores static assets (CSS, JS, images, fonts, etc.)
-├── blocks          # Reusable, nestable, customizable components
-├── config          # Global theme settings and customization options
-├── layout          # Top-level wrappers for pages (layout templates)
-├── locales         # Translation files for theme internationalization
-├── sections        # Modular full-width page components
-├── snippets        # Reusable Liquid code or HTML fragments
-└── templates       # Templates combining sections and blocks to define page structures
+```text
+assets/      CSS, JavaScript, images, fonts
+blocks/      Reusable and nestable theme blocks
+config/      Global theme settings
+layout/      Global HTML document wrapper
+locales/     Translation files
+sections/    Modular page sections
+snippets/    Reusable Liquid/HTML fragments
+templates/   Page composition and section ordering
 ```
 
-#### `sections`
+### Component Responsibilities
 
-- Sections are `.liquid` files that allow you to create reusable modules that can be customized by merchants
-- Sections can include blocks which allow merchants to add, remove, and reorder content within a section
-- Sections are made customizable by including the required `{% schema %}` tag that exposes settings in the theme editor via a JSON object. Validate that JSON object using the `schemas/section.json` JSON schema
-- Examples of sections: hero banners, product grids, testimonials, featured collections
+**Layout**
+- Owns the global HTML document structure.
+- Must include `{{ content_for_header }}` and `{{ content_for_layout }}`.
 
-#### `blocks`
+**Templates**
+- Define page composition and the order of sections.
+- Use templates to compose pages from independent sections.
 
-- Blocks are `.liquid` files that allow you to create reusable small components that can be customized by merchants (they don't need to fit the full-width of the page)
-- Blocks are ideal for logic that needs to be reused and also edited in the theme editor by merchants
-- Blocks can include other nested blocks which allow merchants to add, remove, and reorder content within a block too
-- Blocks are made customizable by including the required `{% schema %}` tag that exposes settings in the theme editor via a JSON object. Validate that JSON object using the `schemas/theme_block.json` JSON schema
-- Blocks must have the `{% doc %}` tag as the header if you directly/staticly render them in other file via `{% content_for 'block', id: '42', type: 'block_name' %}`
-- Examples of blocks: individual testimonials, slides in a carousel, feature items
+**Sections**
+- Large page-level modules such as Hero, About, Services, Portfolio, FAQ, Contact.
+- Can contain blocks.
+- Use `{% schema %}` when Theme Editor configuration is required.
 
-#### `snippets`
+**Blocks**
+- Smaller, repeatable, customizable components inside sections.
+- Can be added, removed, reordered, and nested.
+- Use `{% schema %}`.
 
-- Snippets are reusable code fragments rendered in blocks, sections, and layouts files via the `render` tag
-- Snippets are ideal for logic that needs to be reused but not directly edited in the theme editor by merchants
-- Snippets accept parameters when rendered for dynamic behavior
-- Snippets must have the `{% doc %}` tag as the header
-- Examples of sections: buttons, meta-tags, css-variables, and form elements
+**Snippets**
+- Reusable Liquid/HTML implementation details.
+- Render with `{% render 'snippet-name' %}`.
+- Not directly configurable as Theme Editor components.
+- Use `{% doc %}` / LiquidDoc for reusable snippets.
 
-#### `layout`
+Recommended hierarchy:
 
-- Defines the overall HTML structure of the site, including `<head>` and `<body>`, and wraps other templates to provide a consistent frame
-- Contains repeated global elements like navigation, cart drawer, footer, and usually includes CSS/JS assets and meta tags
-- Must include `{{ content_for_header }}` to inject Shopify scripts in the `<head>` and `{{ content_for_layout }}` to render the page content
+```text
+layout
+  ↓
+template
+  ↓
+section
+  ↓
+block
+  ↓
+snippet
+```
 
-#### `config`
+Do not try to put an entire page into one huge section. Split major page areas into independent sections.
 
-- `config/settings_schema.json` is a JSON file that defines schema for global theme settings. Validate the shape shape of this JSON file using the `schemas/theme_settings.json` JSON schema
-- `config/settings_data.json` is JSON file that holds the data for the settings defined by `config/settings_schema.json`
+## Section Groups and Nested Content
 
-#### `assets`
-
-- Contains static files like CSS, JavaScript, and images—including compiled and optimized assets—referenced in templates via the `asset_url` filter
-- Keep it here only `critical.css` and static files necessary for every page, otherwise prefer the usage of the `{% stylesheet %}` and `{% javascript %}` tags
-
-#### `locales`
-
-- Stores translation files organized by language code (e.g., `en.default.json`, `fr.json`) to localize all user-facing theme content and editor strings
-- Enables multi-language support by providing translations accessible via filters like `{{ 'key' | t }}` in Liquid for proper internationalization
-- Validate `locales` JSON files using the `schemas/translations.json` JSON schema
-
-#### `templates`
-
-- JSON file that define the structure, ordering, and which sections and blocks appear on each page type, allowing merchants to customize layouts without code changes
-
-### CSS & JavaScript
-
-- Write CSS and JavaScript per components using the `{% stylesheet %}` and `{% javascript %}` tags
-- Note: `{% stylesheet %}` and `{% javascript %}` are only supported in `snippets/`, `blocks/`, and `sections/`
-
-### LiquidDoc
-
-Snippets and blocks (when blocks are statically rendered) must include the LiquidDoc header that documents the purpose of the file and required parameters. Example:
+Use section groups when multiple sections need to be rendered together as part of a layout:
 
 ```liquid
-{% doc %}
-  Renders a responsive image that might be wrapped in a link.
-
-  @param {image} image - The image to be rendered
-  @param {string} [url] - An optional destination URL for the image
-
-  @example
-  {% render 'image', image: product.featured_image %}
-{% enddoc %}
-
-<a href="{{ url | default: '#' }}">{{ image | image_url: width: 200, height: 200 | image_tag }}</a>
+{% sections 'group-name' %}
 ```
 
-## The `{% schema %}` tag on blocks and sections
-
-**Key principles: follow the "Good practices" and "Validate the `{% schema %}` content" using JSON schemas**
-
-### Good practices
-
-When defining the `{% schema %}` tag on sections and blocks, follow these guidelines to use the values:
-
-**Single property settings**: For settings that correspond to a single CSS property, use CSS variables:
-```liquid
-<div class="collection" style="--gap: {{ block.settings.gap }}px">
-  Example
-</div>
-
-{% stylesheet %}
-  .collection {
-    gap: var(--gap);
-  }
-{% endstylesheet %}
-
-{% schema %}
-{
-  "settings": [{
-    "type": "range",
-    "label": "gap",
-    "id": "gap",
-    "min": 0,
-    "max": 100,
-    "unit": "px",
-    "default": 0,
-  }]
-}
-{% endschema %}
-```
-
-**Multiple property settings**: For settings that control multiple CSS properties, use CSS classes:
-```liquid
-<div class="collection {{ block.settings.layout }}">
-  Example
-</div>
-
-{% stylesheet %}
-  .collection--full-width {
-    /* multiple styles */
-  }
-  .collection--narrow {
-    /* multiple styles */
-  }
-{% endstylesheet %}
-
-{% schema %}
-{
-  "settings": [{
-    "type": "select",
-    "id": "layout",
-    "label": "layout",
-    "values": [
-      { "value": "collection--full-width", "label": "t:options.full" },
-      { "value": "collection--narrow", "label": "t:options.narrow" }
-    ]
-  }]
-}
-{% endschema %}
-```
-
-#### Mobile layouts
-
-If you need to create a mobile layout and you want the merchant to be able to select one or two columns, use a select input:
+Use blocks for nested, reorderable content inside a section:
 
 ```liquid
-{% schema %}
-{
-  "type": "select",
-  "id": "columns_mobile",
-  "label": "Columns on mobile",
-  "options": [
-    { "value": 1, "label": "1" },
-    { "value": "2", "label": "2" }
-  ]
-}
-{% endschema %}
-```
-
-## Liquid
-
-### Liquid delimiters
-
-- **`{{ ... }}`**: Output – prints a value.
-- **`{{- ... -}}`**: Output, trims whitespace around the value.
-- **`{% ... %}`**: Logic/control tag (if, for, assign, etc.), does not print anything, no whitespace trim.
-- **`{%- ... -%}`**: Logic/control tag, trims whitespace around the tag.
-
-**Tip:**
-Adding a dash (`-`) after `{%`/`{{` or before `%}`/`}}` trims spaces or newlines next to the tag.
-
-**Examples:**
-- `{{- product.title -}}` → print value, remove surrounding spaces or lines.
-- `{%- if available -%}In stock{%- endif -%}` → logic, removes extra spaces/lines.
-
-### Liquid operators
-
-**Comparison operators:**
-- ==
-- !=
-- >
-- <
-- >=
-- <=
-
-**Logical operators:**
-- `or`
-- `and`
-- `contains` - checks if a string contains a substring, or if an array contains a string
-
-#### Comparison and comparison tags
-
-**Key condition principles:**
-- For simplificity, ALWAYS use nested `if` conditions when the logic requires more than one logical operator
-- Parentheses are not supported in Liquid
-- Ternary conditionals are not supported in Liquid, so always use `{% if cond %}`
-
-**Basic comparison example:**
-```liquid
-{% if product.title == "Awesome Shoes" %}
-  These shoes are awesome!
-{% endif %}
-```
-
-**Multiple Conditions:**
-```liquid
-{% if product.type == "Shirt" or product.type == "Shoes" %}
-  This is a shirt or a pair of shoes.
-{% endif %}
-```
-
-**Contains Usage:**
-- For strings: `{% if product.title contains "Pack" %}`
-- For arrays: `{% if product.tags contains "Hello" %}`
-- Note: `contains` only works with strings, not objects in arrays
-
-**{% elsif %} (used inside if/unless only)**
-```liquid
-{% if a %}
-  ...
-{% elsif b %}
-  ...
-{% endif %}
-```
-
-**{% unless %}**
-```liquid
-{% unless condition %}
-  ...
-{% endunless %}
-```
-
-**{% case %}**
-```liquid
-{% case variable %}
-  {% when 'a' %}
-    a
-  {% when 'b' %}
-    b
-  {% else %}
-    other
-{% endcase %}
-```
-
-**{% else %} (used inside if, unless, case, or for)**
-```liquid
-{% if product.available %}
-  In stock
-{% else %}
-  Sold out
-{% endif %}
-```
-_or inside a for loop:_
-```liquid
-{% for item in collection.products %}
-  {{ item.title }}
-{% else %}
-  No products found.
-{% endfor %}
-```
-
-#### Variables and variable tags
-
-```liquid
-{% assign my_variable = 'value' %}
-
-{% capture my_variable %}
-  Contents of variable
-{% endcapture %}
-
-{% increment counter %}
-{% decrement counter %}
-```
-
-### Liquid filters
-
-You can chain filters in Liquid, passing the result of one filter as the input to the next.
-
-See these filters:
-
-- `upcase`: `{{ string | upcase }}` returns a **string**
-- `split`: `{{ string | split: string }}` returns an **array** (as we may notice in the docs, `split` receives a string as its argument)
-- `last`: `{{ array | last }}` returns **untyped**
-
-Each filter can pass its return value to the next filter as long as the types match.
-
-For example, `upcase` returns a string, which is suitable input for `split`, which then produces an array for `last` to use.
-
-Here's how the filters are executed step by step to eventually return `"WORLD"`:
-
-```liquid
-{{ "hello world" | upcase | split: " " | last }}
-```
-
-- First, `"hello world"` is converted to uppercase: `"HELLO WORLD"`, which is a string
-- Next, `split` can act on strings, so it splits the value by space into an array: `["HELLO", "WORLD"]`
-- Finally, the `last` filter work with array, so `"WORLD"` is returned
-
-#### Array
-- `compact`: `{{ array | compact }}` returns `array`
-- `concat`: `{{ array | concat: array }}` returns `array`
-- `find`: `{{ array | find: string, string }}` returns `untyped`
-- `find_index`: `{{ array | find_index: string, string }}` returns `number`
-- `first`: `{{ array | first }}` returns `untyped`
-- `has`: `{{ array | has: string, string }}` returns `boolean`
-- `join`: `{{ array | join }}` returns `string`
-- `last`: `{{ array | last }}` returns `untyped`
-- `map`: `{{ array | map: string }}` returns `array`
-- `reject`: `{{ array | reject: string, string }}` returns `array`
-- `reverse`: `{{ array | reverse }}` returns `array`
-- `size`: `{{ variable | size }}` returns `number`
-- `sort`: `{{ array | sort }}` returns `array`
-- `sort_natural`: `{{ array | sort_natural }}` returns `array`
-- `sum`: `{{ array | sum }}` returns `number`
-- `uniq`: `{{ array | uniq }}` returns `array`
-- `where`: `{{ array | where: string, string }}` returns `array`
-
-#### Cart
-- `item_count_for_variant`: `{{ cart | item_count_for_variant: {variant_id} }}` returns `number`
-- `line_items_for`: `{{ cart | line_items_for: object }}` returns `array`
-
-#### Collection
-- `link_to_type`: `{{ string | link_to_type }}` returns `string`
-- `link_to_vendor`: `{{ string | link_to_vendor }}` returns `string`
-- `sort_by`: `{{ string | sort_by: string }}` returns `string`
-- `url_for_type`: `{{ string | url_for_type }}` returns `string`
-- `url_for_vendor`: `{{ string | url_for_vendor }}` returns `string`
-- `within`: `{{ string | within: collection }}` returns `string`
-- `highlight_active_tag`: `{{ string | highlight_active_tag }}` returns `string`
-
-#### Color
-- `brightness_difference`: `{{ string | brightness_difference: string }}` returns `number`
-- `color_brightness`: `{{ string | color_brightness }}` returns `number`
-- `color_contrast`: `{{ string | color_contrast: string }}` returns `number`
-- `color_darken`: `{{ string | color_darken: number }}` returns `string`
-- `color_desaturate`: `{{ string | color_desaturate: number }}` returns `string`
-- `color_difference`: `{{ string | color_difference: string }}` returns `number`
-- `color_extract`: `{{ string | color_extract: string }}` returns `number`
-- `color_lighten`: `{{ string | color_lighten: number }}` returns `string`
-- `color_mix`: `{{ string | color_mix: string, number }}` returns `string`
-- `color_modify`: `{{ string | color_modify: string, number }}` returns `string`
-- `color_saturate`: `{{ string | color_saturate: number }}` returns `string`
-- `color_to_hex`: `{{ string | color_to_hex }}` returns `string`
-- `color_to_hsl`: `{{ string | color_to_hsl }}` returns `string`
-- `color_to_oklch`: `{{ string | color_to_oklch }}` returns `string`
-- `color_to_rgb`: `{{ string | color_to_rgb }}` returns `string`
-- `hex_to_rgba`: `{{ string | hex_to_rgba }}` returns `string`
-
-#### Customer
-- `customer_login_link`: `{{ string | customer_login_link }}` returns `string`
-- `customer_logout_link`: `{{ string | customer_logout_link }}` returns `string`
-- `customer_register_link`: `{{ string | customer_register_link }}` returns `string`
-- `avatar`: `{{ customer | avatar }}` returns `string`
-- `login_button`: `{{ shop | login_button }}` returns `string`
-
-#### Date
-- `date`: `{{ date | date: string }}` returns `string`
-
-#### Default
-- `default_errors`: `{{ string | default_errors }}` returns `string`
-- `default`: `{{ variable | default: variable }}` returns `untyped`
-- `default_pagination`: `{{ paginate | default_pagination }}` returns `string`
-
-#### Font
-- `font_face`: `{{ font | font_face }}` returns `string`
-- `font_modify`: `{{ font | font_modify: string, string }}` returns `font`
-- `font_url`: `{{ font | font_url }}` returns `string`
-
-#### Format
-- `date`: `{{ string | date: string }}` returns `string`
-- `json`: `{{ variable | json }}` returns `string`
-- `structured_data`: `{{ variable | structured_data }}` returns `string`
-- `unit_price_with_measurement`: `{{ number | unit_price_with_measurement: unit_price_measurement }}` returns `string`
-- `weight_with_unit`: `{{ number | weight_with_unit }}` returns `string`
-
-#### Hosted_file
-- `asset_img_url`: `{{ string | asset_img_url }}` returns `string`
-- `asset_url`: `{{ string | asset_url }}` returns `string`
-- `file_img_url`: `{{ string | file_img_url }}` returns `string`
-- `file_url`: `{{ string | file_url }}` returns `string`
-- `global_asset_url`: `{{ string | global_asset_url }}` returns `string`
-- `shopify_asset_url`: `{{ string | shopify_asset_url }}` returns `string`
-
-#### Html
-- `time_tag`: `{{ string | time_tag: string }}` returns `string`
-- `inline_asset_content`: `{{ asset_name | inline_asset_content }}` returns `string`
-- `highlight`: `{{ string | highlight: string }}` returns `string`
-- `link_to`: `{{ string | link_to: string }}` returns `string`
-- `placeholder_svg_tag`: `{{ string | placeholder_svg_tag }}` returns `string`
-- `preload_tag`: `{{ string | preload_tag: as: string }}` returns `string`
-- `script_tag`: `{{ string | script_tag }}` returns `string`
-- `stylesheet_tag`: `{{ string | stylesheet_tag }}` returns `string`
-
-#### Localization
-- `currency_selector`: `{{ form | currency_selector }}` returns `string`
-- `translate`: `{{ string | t }}` returns `string`
-- `format_address`: `{{ address | format_address }}` returns `string`
-
-#### Math
-- `abs`: `{{ number | abs }}` returns `number`
-- `at_least`: `{{ number | at_least }}` returns `number`
-- `at_most`: `{{ number | at_most }}` returns `number`
-- `ceil`: `{{ number | ceil }}` returns `number`
-- `divided_by`: `{{ number | divided_by: number }}` returns `number`
-- `floor`: `{{ number | floor }}` returns `number`
-- `minus`: `{{ number | minus: number }}` returns `number`
-- `modulo`: `{{ number | modulo: number }}` returns `number`
-- `plus`: `{{ number | plus: number }}` returns `number`
-- `round`: `{{ number | round }}` returns `number`
-- `times`: `{{ number | times: number }}` returns `number`
-
-#### Media
-- `external_video_tag`: `{{ variable | external_video_tag }}` returns `string`
-- `external_video_url`: `{{ media | external_video_url: attribute: string }}` returns `string`
-- `image_tag`: `{{ string | image_tag }}` returns `string`
-- `media_tag`: `{{ media | media_tag }}` returns `string`
-- `model_viewer_tag`: `{{ media | model_viewer_tag }}` returns `string`
-- `video_tag`: `{{ media | video_tag }}` returns `string`
-- `article_img_url`: `{{ variable | article_img_url }}` returns `string`
-- `collection_img_url`: `{{ variable | collection_img_url }}` returns `string`
-- `image_url`: `{{ variable | image_url: width: number, height: number }}` returns `string`
-- `img_tag`: `{{ string | img_tag }}` returns `string`
-- `img_url`: `{{ variable | img_url }}` returns `string`
-- `product_img_url`: `{{ variable | product_img_url }}` returns `string`
-
-#### Metafield
-- `metafield_tag`: `{{ metafield | metafield_tag }}` returns `string`
-- `metafield_text`: `{{ metafield | metafield_text }}` returns `string`
-
-#### Money
-- `money`: `{{ number | money }}` returns `string`
-- `money_with_currency`: `{{ number | money_with_currency }}` returns `string`
-- `money_without_currency`: `{{ number | money_without_currency }}` returns `string`
-- `money_without_trailing_zeros`: `{{ number | money_without_trailing_zeros }}` returns `string`
-
-#### Payment
-- `payment_button`: `{{ form | payment_button }}` returns `string`
-- `payment_terms`: `{{ form | payment_terms }}` returns `string`
-- `payment_type_img_url`: `{{ string | payment_type_img_url }}` returns `string`
-- `payment_type_svg_tag`: `{{ string | payment_type_svg_tag }}` returns `string`
-
-#### String
-- `blake3`: `{{ string | blake3 }}` returns `string`
-- `hmac_sha1`: `{{ string | hmac_sha1: string }}` returns `string`
-- `hmac_sha256`: `{{ string | hmac_sha256: string }}` returns `string`
-- `md5`: `{{ string | md5 }}` returns `string`
-- `sha1`: `{{ string | sha1: string }}` returns `string`
-- `sha256`: `{{ string | sha256: string }}` returns `string`
-- `append`: `{{ string | append: string }}` returns `string`
-- `base64_decode`: `{{ string | base64_decode }}` returns `string`
-- `base64_encode`: `{{ string | base64_encode }}` returns `string`
-- `base64_url_safe_decode`: `{{ string | base64_url_safe_decode }}` returns `string`
-- `base64_url_safe_encode`: `{{ string | base64_url_safe_encode }}` returns `string`
-- `capitalize`: `{{ string | capitalize }}` returns `string`
-- `downcase`: `{{ string | downcase }}` returns `string`
-- `escape`: `{{ string | escape }}` returns `string`
-- `escape_once`: `{{ string | escape_once }}` returns `string`
-- `lstrip`: `{{ string | lstrip }}` returns `string`
-- `newline_to_br`: `{{ string | newline_to_br }}` returns `string`
-- `prepend`: `{{ string | prepend: string }}` returns `string`
-- `remove`: `{{ string | remove: string }}` returns `string`
-- `remove_first`: `{{ string | remove_first: string }}` returns `string`
-- `remove_last`: `{{ string | remove_last: string }}` returns `string`
-- `replace`: `{{ string | replace: string, string }}` returns `string`
-- `replace_first`: `{{ string | replace_first: string, string }}` returns `string`
-- `replace_last`: `{{ string | replace_last: string, string }}` returns `string`
-- `rstrip`: `{{ string | rstrip }}` returns `string`
-- `slice`: `{{ string | slice }}` returns `string`
-- `split`: `{{ string | split: string }}` returns `array`
-- `strip`: `{{ string | strip }}` returns `string`
-- `strip_html`: `{{ string | strip_html }}` returns `string`
-- `strip_newlines`: `{{ string | strip_newlines }}` returns `string`
-- `truncate`: `{{ string | truncate: number }}` returns `string`
-- `truncatewords`: `{{ string | truncatewords: number }}` returns `string`
-- `upcase`: `{{ string | upcase }}` returns `string`
-- `url_decode`: `{{ string | url_decode }}` returns `string`
-- `url_encode`: `{{ string | url_encode }}` returns `string`
-- `camelize`: `{{ string | camelize }}` returns `string`
-- `handleize`: `{{ string | handleize }}` returns `string`
-- `url_escape`: `{{ string | url_escape }}` returns `string`
-- `url_param_escape`: `{{ string | url_param_escape }}` returns `string`
-- `pluralize`: `{{ number | pluralize: string, string }}` returns `string`
-
-#### Tag
-- `link_to_add_tag`: `{{ string | link_to_add_tag }}` returns `string`
-- `link_to_remove_tag`: `{{ string | link_to_remove_tag }}` returns `string`
-- `link_to_tag`: `{{ string | link_to_tag }}` returns `string`
-
-### Liquid objects
-
-#### Global objects
-- `collections`
-- `pages`
-- `all_products`
-- `articles`
-- `blogs`
-- `cart`
-- `closest`
-- `content_for_header`
-- `customer`
-- `images`
-- `linklists`
-- `localization`
-- `metaobjects`
-- `request`
-- `routes`
-- `shop`
-- `theme`
-- `settings`
-- `template`
-- `additional_checkout_buttons`
-- `all_country_option_tags`
-- `canonical_url`
-- `content_for_additional_checkout_buttons`
-- `content_for_index`
-- `content_for_layout`
-- `country_option_tags`
-- `current_page`
-- `handle`
-- `page_description`
-- `page_image`
-- `page_title`
-- `powered_by_link`
-- `scripts`
-
-#### `/article` page
-- `article`
-- `blog`
-
-#### `/blog` page
-- `blog`
-- `current_tags`
-
-#### `/cart` page
-- `cart`
-
-#### `/checkout` page
-- `checkout`
-
-#### `/collection` page
-- `collection`
-- `current_tags`
-
-#### `/customers/account` page
-- `customer`
-
-#### `/customers/addresses` page
-- `customer`
-
-#### `/customers/order` page
-- `customer`
-- `order`
-
-#### `/gift_card.liquid` page
-- `gift_card`
-- `recipient`
-
-#### `/metaobject` page
-- `metaobject`
-
-#### `/page` page
-- `page`
-
-#### `/product` page
-- `product`
-- `remote_product`
-
-#### `/robots.txt.liquid` page
-- `robots`
-
-#### `/search` page
-- `search`
-### Liquid tags
-
-
-#### content_for
-The `content_for` tag requires a type parameter to differentiate between rendering a number of theme blocks (`'blocks'`) and a single static block (`'block'`).
-
-
-Syntax:
-```
 {% content_for 'blocks' %}
-{% content_for 'block', type: "slide", id: "slide-1" %}
 ```
 
-#### form
-Because there are many different form types available in Shopify themes, the `form` tag requires a type. Depending on the
-form type, an additional parameter might be required. You can specify the following form types:
+Use a single static block when appropriate:
 
-- [`activate_customer_password`](https://shopify.dev/docs/api/liquid/tags/form#form-activate_customer_password)
-- [`cart`](https://shopify.dev/docs/api/liquid/tags/form#form-cart)
-- [`contact`](https://shopify.dev/docs/api/liquid/tags/form#form-contact)
-- [`create_customer`](https://shopify.dev/docs/api/liquid/tags/form#form-create_customer)
-- [`currency`](https://shopify.dev/docs/api/liquid/tags/form#form-currency)
-- [`customer`](https://shopify.dev/docs/api/liquid/tags/form#form-customer)
-- [`customer_address`](https://shopify.dev/docs/api/liquid/tags/form#form-customer_address)
-- [`customer_login`](https://shopify.dev/docs/api/liquid/tags/form#form-customer_login)
-- [`guest_login`](https://shopify.dev/docs/api/liquid/tags/form#form-guest_login)
-- [`localization`](https://shopify.dev/docs/api/liquid/tags/form#form-localization)
-- [`new_comment`](https://shopify.dev/docs/api/liquid/tags/form#form-new_comment)
-- [`product`](https://shopify.dev/docs/api/liquid/tags/form#form-product)
-- [`recover_customer_password`](https://shopify.dev/docs/api/liquid/tags/form#form-recover_customer_password)
-- [`reset_customer_password`](https://shopify.dev/docs/api/liquid/tags/form#form-reset_customer_password)
-- [`storefront_password`](https://shopify.dev/docs/api/liquid/tags/form#form-storefront_password)
-
-
-Syntax:
-```
-{% form 'form_type' %}
-  content
-{% endform %}
+```liquid
+{% content_for 'block', type: 'slide', id: 'slide-1' %}
 ```
 
-#### layout
+Static section rendering uses:
 
-Syntax:
+```liquid
+{% section 'section-name' %}
 ```
-{% layout name %}
+
+## Liquid Syntax
+
+Output:
+
+```liquid
+{{ value }}
 ```
 
-#### assign
-You can create variables of any [basic type](https://shopify.dev/docs/api/liquid/basics#types), [object](https://shopify.dev/docs/api/liquid/objects), or object property.
+Output with whitespace trimming:
 
-> Caution:
-> Predefined Liquid objects can be overridden by variables with the same name.
-> To make sure that you can access all Liquid objects, make sure that your variable name doesn't match a predefined object's name.
-
-
-Syntax:
+```liquid
+{{- value -}}
 ```
+
+Logic:
+
+```liquid
+{% if condition %}
+{% endif %}
+```
+
+Logic with whitespace trimming:
+
+```liquid
+{%- if condition -%}
+{%- endif -%}
+```
+
+Liquid does not support parentheses or ternary operators in conditions. Use nested logic instead.
+
+Useful tags include:
+
+- `assign`
+- `capture`
+- `if`
+- `elsif`
+- `unless`
+- `case`
+- `for`
+- `paginate`
+- `render`
+- `content_for`
+- `section`
+- `sections`
+- `style`
+- `stylesheet`
+- `javascript`
+- `liquid`
+- `doc`
+- `form`
+- `break`
+- `continue`
+- `cycle`
+- `increment`
+- `decrement`
+- `comment`
+- `raw`
+- `echo`
+
+### Variables
+
+Use `assign` for variables:
+
+```liquid
 {% assign variable_name = value %}
 ```
 
-#### break
+Avoid variable names that override predefined Shopify Liquid objects.
 
-Syntax:
-```
-{% break %}
-```
+### Loops
 
-#### capture
-You can create complex strings with Liquid logic and variables.
+A `for` loop supports a maximum of 50 iterations per page.
 
-> Caution:
-> Predefined Liquid objects can be overridden by variables with the same name.
-> To make sure that you can access all Liquid objects, make sure that your variable name doesn't match a predefined object's name.
+For supported arrays containing more items, use `paginate`:
 
-
-Syntax:
-```
-{% capture variable %}
-  value
-{% endcapture %}
-```
-
-#### case
-
-Syntax:
-```
-{% case variable %}
-  {% when first_value %}
-    first_expression
-  {% when second_value %}
-    second_expression
-  {% else %}
-    third_expression
-{% endcase %}
-```
-
-#### comment
-Any text inside `comment` tags won't be output, and any Liquid code will be parsed, but not executed.
-
-
-Syntax:
-```
-{% comment %}
-  content
-{% endcomment %}
-```
-
-#### continue
-
-Syntax:
-```
-{% continue %}
-```
-
-#### cycle
-The `cycle` tag must be used inside a `for` loop.
-
-> Tip:
-> Use the `cycle` tag to output text in a predictable pattern. For example, to apply odd/even classes to rows in a table.
-
-
-Syntax:
-```
-{% cycle string, string, ... %}
-```
-
-#### decrement
-Variables that are declared with `decrement` are unique to the [layout](/themes/architecture/layouts), [template](/themes/architecture/templates),
-or [section](/themes/architecture/sections) file that they're created in. However, the variable is shared across
-[snippets](/themes/architecture/snippets) included in the file.
-
-Similarly, variables that are created with `decrement` are independent from those created with [`assign`](https://shopify.dev/docs/api/liquid/tags/assign)
-and [`capture`](https://shopify.dev/docs/api/liquid/tags/capture). However, `decrement` and [`increment`](https://shopify.dev/docs/api/liquid/tags/increment) share
-variables.
-
-
-Syntax:
-```
-{% decrement variable_name %}
-```
-
-#### doc
-The `doc` tag allows developers to include documentation within Liquid
-templates. Any content inside `doc` tags is not rendered or outputted.
-Liquid code inside will be parsed but not executed. This facilitates
-tooling support for features like code completion, linting, and inline
-documentation.
-
-For detailed documentation syntax and examples, see the
-[`LiquidDoc` reference](https://shopify.dev/docs/storefronts/themes/tools/liquid-doc).
-
-
-Syntax:
-```
-{% doc %}
-  Renders a message.
-
-  @param {string} foo - A string value.
-  @param {string} [bar] - An optional string value.
-
-  @example
-  {% render 'message', foo: 'Hello', bar: 'World' %}
-{% enddoc %}
-```
-
-#### echo
-Using the `echo` tag is the same as wrapping an expression in curly brackets (`{{` and `}}`). However, unlike the curly
-bracket method, you can use the `echo` tag inside [`liquid` tags](https://shopify.dev/docs/api/liquid/tags/liquid).
-
-> Tip:
-> You can use [filters](https://shopify.dev/docs/api/liquid/filters) on expressions inside `echo` tags.
-
-
-Syntax:
-```
-{% liquid
-  echo expression
-%}
-```
-
-#### for
-You can do a maximum of 50 iterations with a `for` loop. If you need to iterate over more than 50 items, then use the
-[`paginate` tag](https://shopify.dev/docs/api/liquid/tags/paginate) to split the items over multiple pages.
-
-> Tip:
-> Every `for` loop has an associated [`forloop` object](https://shopify.dev/docs/api/liquid/objects/forloop) with information about the loop.
-
-
-Syntax:
-```
-{% for variable in array %}
-  expression
-{% endfor %}
-```
-
-#### if
-
-Syntax:
-```
-{% if condition %}
-  expression
-{% endif %}
-```
-
-#### increment
-Variables that are declared with `increment` are unique to the [layout](/themes/architecture/layouts), [template](/themes/architecture/templates),
-or [section](/themes/architecture/sections) file that they're created in. However, the variable is shared across
-[snippets](/themes/architecture/snippets) included in the file.
-
-Similarly, variables that are created with `increment` are independent from those created with [`assign`](https://shopify.dev/docs/api/liquid/tags/assign)
-and [`capture`](https://shopify.dev/docs/api/liquid/tags/capture). However, `increment` and [`decrement`](https://shopify.dev/docs/api/liquid/tags/decrement) share
-variables.
-
-
-Syntax:
-```
-{% increment variable_name %}
-```
-
-#### raw
-
-Syntax:
-```
-{% raw %}
-  expression
-{% endraw %}
-```
-
-#### render
-Inside snippets and app blocks, you can't directly access variables that are [created](https://shopify.dev/docs/api/liquid/tags/variable-tags) outside
-of the snippet or app block. However, you can [specify variables as parameters](https://shopify.dev/docs/api/liquid/tags/render#render-passing-variables-to-a-snippet)
-to pass outside variables to snippets.
-
-While you can't directly access created variables, you can access global objects, as well as any objects that are
-directly accessible outside the snippet or app block. For example, a snippet or app block inside the [product template](/themes/architecture/templates/product)
-can access the [`product` object](https://shopify.dev/docs/api/liquid/objects/product), and a snippet or app block inside a [section](/themes/architecture/sections)
-can access the [`section` object](https://shopify.dev/docs/api/liquid/objects/section).
-
-Outside a snippet or app block, you can't access variables created inside the snippet or app block.
-
-> Note:
-> When you render a snippet using the `render` tag, you can't use the [`include` tag](https://shopify.dev/docs/api/liquid/tags/include)
-> inside the snippet.
-
-
-Syntax:
-```
-{% render 'filename' %}
-```
-
-#### tablerow
-The `tablerow` tag must be wrapped in HTML `<table>` and `</table>` tags.
-
-> Tip:
-> Every `tablerow` loop has an associated [`tablerowloop` object](https://shopify.dev/docs/api/liquid/objects/tablerowloop) with information about the loop.
-
-
-Syntax:
-```
-{% tablerow variable in array %}
-  expression
-{% endtablerow %}
-```
-
-#### unless
-> Tip:
-> Similar to the [`if` tag](https://shopify.dev/docs/api/liquid/tags/if), you can use `elsif` to add more conditions to an `unless` tag.
-
-
-Syntax:
-```
-{% unless condition %}
-  expression
-{% endunless %}
-```
-
-#### paginate
-Because [`for` loops](https://shopify.dev/docs/api/liquid/tags/for) are limited to 50 iterations per page, you need to use the `paginate` tag to
-iterate over an array that has more than 50 items. The following arrays can be paginated:
-
-- [`article.comments`](https://shopify.dev/docs/api/liquid/objects/article#article-comments)
-- [`blog.articles`](https://shopify.dev/docs/api/liquid/objects/blog#blog-articles)
-- [`collections`](https://shopify.dev/docs/api/liquid/objects/collections)
-- [`collection.products`](https://shopify.dev/docs/api/liquid/objects/collection#collection-products)
-- [`customer.addresses`](https://shopify.dev/docs/api/liquid/objects/customer#customer-addresses)
-- [`customer.orders`](https://shopify.dev/docs/api/liquid/objects/customer#customer-orders)
-- [`metaobject_definition.values`](https://shopify.dev/docs/api/liquid/objects/metaobject_definition#metaobject_definition-values)
-- [`pages`](https://shopify.dev/docs/api/liquid/objects/pages)
-- [`product.variants`](https://shopify.dev/docs/api/liquid/objects/product#variants)
-- [`search.results`](https://shopify.dev/docs/api/liquid/objects/search#search-results)
-- [`article_list` settings](/themes/architecture/settings/input-settings#article_list)
-- [`collection_list` settings](/themes/architecture/settings/input-settings#collection_list)
-- [`product_list` settings](/themes/architecture/settings/input-settings#product_list)
-
-Within the `paginate` tag, you have access to the [`paginate` object](https://shopify.dev/docs/api/liquid/objects/paginate). You can use this
-object, or the [`default_pagination` filter](https://shopify.dev/docs/api/liquid/filters/default_pagination), to build page navigation.
-
-> Note:
-> The `paginate` tag allows the user to paginate to the 25,000th item in the array and no further. To reach items further in
-> the array the array should be filtered further before paginating. See
-> [Pagination Limits](/themes/best-practices/performance/platform#pagination-limits) for more information.
-
-
-Syntax:
-```
+```liquid
 {% paginate array by page_size %}
   {% for item in array %}
-    forloop_content
+    ...
   {% endfor %}
 {% endpaginate %}
 ```
 
-#### javascript
-Each section, block or snippet can have only one `{% javascript %}` tag.
+Pagination supports the arrays documented by Shopify, including products, collections, articles, comments, customer orders/addresses, search results, variants, and supported list settings.
 
-To learn more about how JavaScript that's defined between the `javascript` tags is loaded and run, refer to the documentation for [javascript tags](/storefronts/themes/best-practices/javascript-and-stylesheet-tags#javascript).
-> Caution:
-> Liquid isn't rendered inside of `{% javascript %}` tags. Including Liquid code can cause syntax errors.
+### Render
 
+Pass variables explicitly to snippets:
 
-Syntax:
-```
-{% javascript %}
-  javascript_code
-{% endjavascript %}
+```liquid
+{% render 'filename', image: product.featured_image %}
 ```
 
-#### section
-Rendering a section with the `section` tag renders a section statically. To learn more about sections and how to use
-them in your theme, refer to [Render a section](/themes/architecture/sections#render-a-section).
+Variables created outside a snippet are not directly available inside it unless passed as parameters. Global/directly accessible objects remain available according to Shopify's Liquid scope rules.
 
+## CSS and JavaScript
 
-Syntax:
-```
-{% section 'name' %}
-```
+Prefer component-local `{% stylesheet %}` and `{% javascript %}` tags for section, block, and snippet styles/scripts.
 
-#### stylesheet
-Each section, block or snippet can have only one `{% stylesheet %}` tag.
+Each section, block, or snippet can contain only one `{% stylesheet %}` tag and one `{% javascript %}` tag.
 
-To learn more about how CSS that's defined between the `stylesheet` tags is loaded and run, refer to the documentation for [stylesheet tags](/storefronts/themes/best-practices/javascript-and-stylesheet-tags#stylesheet).
-> Caution:
-> Liquid isn't rendered inside of `{% stylesheet %}` tags. Including Liquid code can cause syntax errors.
+Example:
 
-
-Syntax:
-```
+```liquid
 {% stylesheet %}
-  css_styles
+  .component {
+    display: block;
+  }
 {% endstylesheet %}
 ```
 
-#### sections
-Use this tag to render section groups as part of the theme's [layout](/themes/architecture/layouts) content. Place the `sections` tag where you want to render it in the layout.
-
-To learn more about section groups and how to use them in your theme, refer to [Section groups](/themes/architecture/section-groups#usage).
-
-
-Syntax:
-```
-{% sections 'name' %}
+```liquid
+{% javascript %}
+  // JavaScript
+{% endjavascript %}
 ```
 
-#### style
-> Note:
-> If you reference [color settings](/themes/architecture/settings/input-settings#color) inside `style` tags, then
-> the associated CSS rules will update as the setting is changed in the theme editor, without a page refresh.
+Do not put Liquid code inside `{% stylesheet %}` or `{% javascript %}` tags.
 
+Use `assets/` for global/static CSS or JavaScript when component-local tags are not appropriate.
 
-Syntax:
-```
-{% style %}
-  CSS_rules
-{% endstyle %}
-```
+## Schema
 
-#### else
-You can use the `else` tag with the following tags:
+Use `{% schema %}` for Theme Editor configuration.
 
-- [`case`](https://shopify.dev/docs/api/liquid/tags/case)
-- [`if`](https://shopify.dev/docs/api/liquid/tags/if)
-- [`unless`](https://shopify.dev/docs/api/liquid/tags/unless)
+Rules:
 
+- If one setting controls one CSS property, prefer a CSS custom property.
+- If multiple CSS properties are controlled together, prefer a semantic CSS class.
+- Use `select` for configurable layout choices such as mobile column counts.
+- Keep schema valid against Shopify's JSON schema.
+- Use translated schema labels where appropriate.
 
-Syntax:
-```
-{% else %}
-  expression
-```
-
-#### else
-
-Syntax:
-```
-{% for variable in array %}
-  first_expression
-{% else %}
-  second_expression
-{% endfor %}
-```
-
-#### liquid
-Because the tags don't have delimeters, each tag needs to be on its own line.
-
-> Tip:
-> Use the [`echo` tag](https://shopify.dev/docs/api/liquid/tags/echo) to output an expression inside `liquid` tags.
-
-
-Syntax:
-```
-{% liquid
-  expression
-%}
-```
-
-
-## Translation development standards
-
-### Translation requirements
-
-- **Every user-facing text** must use translation filters.
-- **Update `locales/en.default.json`** with all new keys.
-- **Use descriptive, hierarchical keys** for organization.
-- **Only add English text**; translators handle other languages.
-
-### Translation filter usage
-
-**Use `{{ 'key' | t }}` for all text:**
+Example CSS variable:
 
 ```liquid
-<!-- Good -->
-<h2>{{ 'sections.featured_collection.title' | t }}</h2>
-<p>{{ 'sections.featured_collection.description' | t }}</p>
-<button>{{ 'products.add_to_cart' | t }}</button>
-
-<!-- Bad -->
-<h2>Featured Collection</h2>
-<p>Check out our best products</p>
-<button>Add to cart</button>
+<div style="--gap: {{ block.settings.gap }}px">
 ```
 
-### Translation with variables
-
-**Use variables for interpolation:**
+Example class:
 
 ```liquid
-<!-- Liquid template -->
-<p>{{ 'products.price_range' | t: min: product.price_min | money, max: product.price_max | money }}</p>
-<p>{{ 'general.pagination.page' | t: page: paginate.current_page, pages: paginate.pages }}</p>
+<div class="{{ block.settings.layout }}">
 ```
 
-**Corresponding keys in locale files:**
+## LiquidDoc
 
-```json
-{
-  "products": {
-    "price_range": "From {{ min }} to {{ max }}"
-  },
-  "general": {
-    "pagination": {
-      "page": "Page {{ page }} of {{ pages }}"
-    }
-  }
-}
-```
+Document reusable snippets and relevant blocks with `{% doc %}`.
 
-### Best practices
+Include:
 
-**Content guidelines:**
-- Write clear, concise text.
-- **Use sentence case** for all user-facing text, including titles, headings, and button labels (capitalize only the first word and proper nouns; e.g., `Featured collection` → `Featured collection`, not `Featured Collection`).
-- Be consistent with terminology.
-- Consider character limits for UI elements.
+- Purpose
+- Parameters
+- Optional parameters
+- Examples
 
-**Variable usage:**
-- Use interpolation rather than appending strings together.
-- Prioritize clarity over brevity for variable naming.
-- Escape variables unless they output HTML: `{{ variable | escape }}`.
-
-
-## Localization standards
-
-Auto-attached when working in `locales/` directory.
-
-### File structure
-
-```
-locales/
-├── en.default.json          # English (required)
-├── en.default.schema.json   # English (required)
-├── es.json                  # Spanish
-├── est.schema.json          # Spanish
-├── fr.json                  # French
-├── frt.schema.json          # French
-└── pt-BR.json               # Portuguese
-└── pt-BR..schema.json       # Portuguese
-```
-
-#### Locale files
-
-Locale files are JSON files containing translations for all the text strings used throughout a Shopify theme and its editor. They let merchants easily update and localize repeated words and phrases, making it possible to translate store content and settings into multiple languages for international customers. These files provide a centralized way to manage and edit translations.
-
-**Example:**
-```json
-{
-  "general": {
-    "cart": "Cart",
-    "checkout": "Checkout"
-  },
-  "products": {
-    "add_to_cart": "Add to Cart"
-  }
-}
-```
-
-#### Schema locale files
-
-Schema locale files, saved with a .schema.json extension, store translation strings specifically for theme editor setting schemas. They follow a structured organization—category, group, and description—to give context to each translation, enabling accurate localization of editor content. Schema locale files must use the IETF language tag format in their naming, such as en-GB.schema.json for British English or fr-CA.schema.json for Canadian French.
-
-**Example:**
-```json
-{
-  "products": {
-    "card": {
-      "description": "Product card layout"
-    }
-  }
-}
-```
-
-### Key organization
-
-**Hierarchical structure:**
-```json
-{
-  "general": {
-    "meta": {
-      "title": "{{ shop_name }}",
-      "description": "{{ shop_description }}"
-    },
-    "accessibility": {
-      "skip_to_content": "Skip to content",
-      "close": "Close"
-    }
-  },
-  "products": {
-    "add_to_cart": "Add to cart",
-    "quick_view": "Quick view",
-    "price": {
-      "regular": "Regular price",
-      "sale": "Sale price",
-      "unit": "Unit price"
-    }
-  }
-}
-```
-**Usage**
-```liquid
-{{ 'general.meta.title' | t: shop_name: shop.name }}
-{{ 'general.meta.description' | t: shop_description: shop.description }}
-```
-
-### Translation guidelines
-
-**Key naming:**
-- Use descriptive, hierarchical keys
-- Maximum 3 levels deep
-- Use snake_case for key names
-- Group related translations
-
-**Content rules:**
-- Keep text concise for UI elements
-- Use variables for dynamic content
-- Consider character limits
-- Maintain consistent terminology
-
-## Examples per kind of asset
-
-### `snippet`
+Example:
 
 ```liquid
 {% doc %}
-  Renders a responsive image that might be wrapped in a link.
+  Renders a responsive image.
 
-  When `width`, `height` and `crop` are provided, the image will be rendered
-  with a fixed aspect ratio.
-
-  Serves as an example of how to use the `image_url` filter and `image_tag` filter
-  as well as how you can use LiquidDoc to document your code.
-
-  @param {image} image - The image to be rendered
-  @param {string} [url] - An optional destination URL for the image
-  @param {string} [css_class] - Optional class to be added to the image wrapper
-  @param {number} [width] - The highest resolution width of the image to be rendered
-  @param {number} [height] - The highest resolution height of the image to be rendered
-  @param {string} [crop] - The crop position of the image
+  @param {image} image - Image to render
+  @param {string} [url] - Optional destination URL
 
   @example
   {% render 'image', image: product.featured_image %}
-  {% render 'image', image: product.featured_image, url: product.url %}
-  {% render 'image',
-    css_class: 'product__image',
-    image: product.featured_image,
-    url: product.url,
-    width: 1200,
-    height: 800,
-    crop: 'center',
-  %}
+{% enddoc %}
+```
+
+## Translation and Localization
+
+Every user-facing string must use the translation system.
+
+Use:
+
+```liquid
+{{ 'sections.hero.title' | t }}
+```
+
+Do not hardcode UI text directly in Liquid.
+
+Add English translations to:
+
+```text
+locales/en.default.json
+```
+
+Use:
+
+- Descriptive hierarchical keys
+- `snake_case`
+- Maximum 3 levels
+- Consistent terminology
+- Sentence case
+- Interpolation for dynamic values
+
+Example:
+
+```json
+{
+  "sections": {
+    "hero": {
+      "title": "Welcome to our studio"
+    }
+  }
+}
+```
+
+Use interpolation for dynamic values:
+
+```liquid
+{{ 'products.price_range' | t: min: product.price_min, max: product.price_max }}
+```
+
+Escape variables unless they intentionally output HTML:
+
+```liquid
+{{ product.title | escape }}
+```
+
+### Locale Files
+
+Keep translation strings in locale JSON files.
+
+Schema locale files (`*.schema.json`) contain translations for Theme Editor schema labels/descriptions and should follow Shopify's locale naming and structure conventions.
+
+## Content Guidelines
+
+- Write clear, concise UI text.
+- Use sentence case for user-facing text.
+- Keep terminology consistent.
+- Consider character limits in UI components.
+- Prefer interpolation over concatenating strings.
+- Use descriptive variable names.
+- Escape dynamic output by default.
+
+## Example Project Structure
+
+For a page containing Hero, About, Services, Portfolio, Testimonials, FAQ, and Contact:
+
+```text
+templates/
+  page.json
+
+sections/
+  hero.liquid
+  about.liquid
+  services.liquid
+  portfolio.liquid
+  testimonials.liquid
+  faq.liquid
+  contact.liquid
+
+blocks/
+  service-item.liquid
+  portfolio-item.liquid
+  faq-item.liquid
+
+snippets/
+  button.liquid
+  image.liquid
+  icon.liquid
+```
+
+Use the template to control section order, sections to define page modules, blocks for repeatable/customizable children, and snippets for reusable implementation details.
+
+## Example Snippet
+
+```liquid
+{% doc %}
+  Renders a responsive image that can optionally be wrapped in a link.
+
+  @param {image} image - Image to render
+  @param {string} [url] - Optional destination URL
+  @param {string} [css_class] - Optional wrapper class
+  @param {number} [width] - Maximum image width
+  @param {number} [height] - Maximum image height
+  @param {string} [crop] - Crop position
 {% enddoc %}
 
 {% liquid
@@ -1256,28 +418,13 @@ Schema locale files, saved with a .schema.json extension, store translation stri
     height: auto;
   }
 {% endstylesheet %}
-
-{% javascript %}
-  function doSomething() {
-    // example
-  }
-  doSomething()
-{% endjavascript %}
-
 ```
 
-### `block`
+## Example Theme Block
 
-#### Text
+Blocks should expose merchant-configurable settings through schema and render nested content when needed.
 
 ```liquid
-{% doc %}
-  Renders a text block.
-
-  @example
-  {% content_for 'block', type: 'text', id: 'text' %}
-{% enddoc %}
-
 <div
   class="text {{ block.settings.text_style }}"
   style="--text-align: {{ block.settings.alignment }}"
@@ -1289,13 +436,6 @@ Schema locale files, saved with a .schema.json extension, store translation stri
 {% stylesheet %}
   .text {
     text-align: var(--text-align);
-  }
-  .text--title {
-    font-size: 2rem;
-    font-weight: 700;
-  }
-  .text--subtitle {
-    font-size: 1.5rem;
   }
 {% endstylesheet %}
 
@@ -1319,35 +459,20 @@ Schema locale files, saved with a .schema.json extension, store translation stri
         { "value": "text--normal", "label": "t:options.text_style.normal" }
       ],
       "default": "text--title"
-    },
-    {
-      "type": "text_alignment",
-      "id": "alignment",
-      "label": "t:labels.alignment",
-      "default": "left"
     }
   ],
-  "presets": [{ "name": "t:general.text" }]
+  "presets": [
+    { "name": "t:general.text" }
+  ]
 }
 {% endschema %}
 ```
 
-#### Group
+## Example Nested Group Block
+
+A layout/group block can render child theme blocks:
 
 ```liquid
-{% doc %}
-  Renders a group of blocks with configurable layout direction, gap and
-  alignment.
-
-  All settings apply to only one dimension to reduce configuration complexity.
-
-  This component is a wrapper concerned only with rendering its children in
-  the specified layout direction with appropriate padding and alignment.
-
-  @example
-  {% content_for 'block', type: 'group', id: 'group' %}
-{% enddoc %}
-
 <div
   class="group {{ block.settings.layout_direction }}"
   style="
@@ -1358,89 +483,23 @@ Schema locale files, saved with a .schema.json extension, store translation stri
 >
   {% content_for 'blocks' %}
 </div>
-
-{% stylesheet %}
-  .group {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow: hidden;
-    width: 100%;
-  }
-  .group--horizontal {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 var(--padding);
-  }
-  .group--vertical {
-    flex-direction: column;
-    align-items: var(--alignment);
-    padding: var(--padding) 0;
-  }
-{% endstylesheet %}
-
-{% schema %}
-{
-  "name": "t:general.group",
-  "blocks": [{ "type": "@theme" }],
-  "settings": [
-    {
-      "type": "select",
-      "id": "layout_direction",
-      "label": "t:labels.layout_direction",
-      "default": "group--vertical",
-      "options": [
-        { "value": "group--horizontal", "label": "t:options.direction.horizontal" },
-        { "value": "group--vertical", "label": "t:options.direction.vertical" }
-      ]
-    },
-    {
-      "visible_if": "{{ block.settings.layout_direction == 'group--vertical' }}",
-      "type": "select",
-      "id": "alignment",
-      "label": "t:labels.alignment",
-      "default": "flex-start",
-      "options": [
-        { "value": "flex-start", "label": "t:options.alignment.left" },
-        { "value": "center", "label": "t:options.alignment.center" },
-        { "value": "flex-end", "label": "t:options.alignment.right" }
-      ]
-    },
-    {
-      "type": "range",
-      "id": "padding",
-      "label": "t:labels.padding",
-      "default": 0,
-      "min": 0,
-      "max": 200,
-      "step": 2,
-      "unit": "px"
-    }
-  ],
-  "presets": [
-    {
-      "name": "t:general.column",
-      "category": "t:general.layout",
-      "settings": {
-        "layout_direction": "group--vertical",
-        "alignment": "flex-start",
-        "padding": 0
-      }
-    },
-    {
-      "name": "t:general.row",
-      "category": "t:general.layout",
-      "settings": {
-        "layout_direction": "group--horizontal",
-        "padding": 0
-      }
-    }
-  ]
-}
-{% endschema %}
 ```
 
-### `section`
+The schema can allow:
+
+```json
+{
+  "blocks": [
+    { "type": "@theme" }
+  ]
+}
+```
+
+Use this pattern when a merchant needs nested, reorderable theme blocks.
+
+## Example Section
+
+A section can provide a wrapper/background and render its blocks:
 
 ```liquid
 <div class="example-section full-width">
@@ -1450,69 +509,27 @@ Schema locale files, saved with a .schema.json extension, store translation stri
     </div>
   {% endif %}
 
-  <div class="custom-section__content">
+  <div class="example-section__content">
     {% content_for 'blocks' %}
   </div>
 </div>
-
-{% stylesheet %}
-  .example-section {
-    position: relative;
-    overflow: hidden;
-    width: 100%;
-  }
-  .example-section__background {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    overflow: hidden;
-  }
-  .example-section__background img {
-    position: absolute;
-    width: 100%;
-    height: auto;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  .example-section__content {
-    display: grid;
-    grid-template-columns: var(--content-grid);
-  }
-
-  .example-section__content > * {
-    grid-column: 2;
-  }
-{% endstylesheet %}
-
-{% schema %}
-{
-  "name": "t:general.custom_section",
-  "blocks": [{ "type": "@theme" }],
-  "settings": [
-    {
-      "type": "image_picker",
-      "id": "background_image",
-      "label": "t:labels.background"
-    }
-  ],
-  "presets": [
-    {
-      "name": "t:general.custom_section"
-    }
-  ]
-}
-{% endschema %}
 ```
 
-<!-- rtk-instructions v2 -->
-# Command output
+Use section settings for section-level configuration and blocks for the content inside the section.
 
-Command output here is condensed to save tokens, keeping every signal and
-dropping costly noise. Treat it as the complete result: run commands
-normally, and batch related commands into one call to avoid extra turns.
-Truncated results state their recovery path in their own output. Re-run a
-command as `rtk proxy <cmd>` only when its result is unusable: empty when
-output was clearly expected, contradicting its exit code, or garbled.
-<!-- /rtk-instructions -->
+## Final Development Principles
+
+1. Follow Shopify's native theme architecture.
+2. Keep page sections independent and reusable.
+3. Use blocks for repeatable/customizable child content.
+4. Use snippets for reusable implementation logic.
+5. Use section groups/templates for page-level composition.
+6. Use schemas for Theme Editor customization.
+7. Use LiquidDoc for reusable components.
+8. Translate every user-facing string.
+9. Escape dynamic variables unless intentionally outputting HTML.
+10. Keep component CSS/JS close to the component.
+11. Avoid unnecessary duplication.
+12. Prefer clarity and maintainability over clever abstractions.
+13. Preserve the defined theme palette unless a requirement explicitly changes it.
+14. Validate Liquid, JSON schema, and theme structure after changes.
