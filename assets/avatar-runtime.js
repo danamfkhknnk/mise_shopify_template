@@ -27,6 +27,7 @@
      strings       overrides for the status/error messages
      onDetect(face, body)      called every detection frame
      onActiveChange(active)    called when tracking starts/stops
+     onReady()                 called when VRM model is loaded and ready
 */
 
 /* MediaPipe + model endpoints. */
@@ -229,6 +230,7 @@ export function createAvatarRuntime(cfg) {
   const statusEl = cfg.statusEl || null;
   const onDetect = typeof cfg.onDetect === 'function' ? cfg.onDetect : null;
   const onActiveChange = typeof cfg.onActiveChange === 'function' ? cfg.onActiveChange : null;
+  const onReady = typeof cfg.onReady === 'function' ? cfg.onReady : null;
   const cameraDistance = cfg.cameraDistance || 1.4;
   const armSpread = typeof cfg.armSpread === 'number' ? cfg.armSpread : 0.12;
   const relaxedPose = cfg.relaxedPose !== false;
@@ -393,6 +395,13 @@ export function createAvatarRuntime(cfg) {
       if (vrm.meta) console.log('[avatar-tracking] meta:', vrm.meta);
 
       setStatus(strings.statusReady, true);
+      if (onReady) {
+        try {
+          onReady();
+        } catch (error) {
+          console.error('[avatar-tracking] onReady callback error:', error);
+        }
+      }
       animate();
     } catch (error) {
       if (disposed) return;

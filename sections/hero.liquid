@@ -47,6 +47,8 @@
               data-hero-dance
               data-magnetic
               aria-pressed="false"
+              data-dance-start-label="{{ section.settings.dance_button_label | escape }}"
+              data-dance-stop-label="{{ section.settings.dance_button_stop_label | escape }}"
               class="font-primary mt-6 inline-flex items-center rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 cursor-pointer aria-pressed:bg-foreground aria-pressed:text-white"
             >
               <span class="hover-rollup leading-[1.3] h-[1.3em]">
@@ -90,9 +92,16 @@
 
     <!-- Tablet and above hero avatar (live VRM) - inside grid -->
     <div class="relative z-0 hidden md:flex justify-center md:mt-0 md:-ml-16" data-hero-media>
-      <div class="w-full aspect-[3/4] lg:aspect-auto lg:h-[760px] lg:w-[570px]" data-hero-vrm-slot="desktop">
+      <div class="w-full aspect-[3/4] lg:aspect-auto lg:h-[760px] lg:w-[570px] overflow-hidden relative" data-hero-vrm-slot="desktop">
+        <!-- Placeholder image while VRM loads -->
+        <img
+          src="{{ 'image.png' | asset_url }}"
+          alt="Loading avatar"
+          class="w-full h-full object-center absolute inset-0 transition-opacity duration-500"
+          data-hero-vrm-skeleton
+        />
         <canvas
-          class="block w-full h-full"
+          class="block w-full h-full hidden relative z-10"
           data-hero-vrm-canvas
           data-model-url="{{ 'lily.vrm' | asset_url }}"
         ></canvas>
@@ -101,7 +110,15 @@
   </div>
     <!-- Mobile hero avatar (live VRM) - outside grid to avoid overflow clipping -->
   <div class="relative z-0 -mt-48 h-[440px] md:hidden w-full -right-14 overflow-hidden pointer-events-none" data-hero-media>
-    <div class="absolute inset-0" data-hero-vrm-slot="mobile"></div>
+    <div class="absolute inset-0" data-hero-vrm-slot="mobile">
+      <!-- Mobile placeholder image while VRM loads -->
+      <img
+        src="{{ 'image.png' | asset_url }}"
+        alt="Loading avatar"
+        class="w-full h-full object-fill transition-opacity duration-500"
+        data-hero-vrm-skeleton-mobile
+      />
+    </div>
   </div>
 
   {% if section.settings.marquee_text != blank %}
@@ -150,10 +167,11 @@
 
       tl.from(hero.querySelector('[data-hero-desc]'), { y: 24, autoAlpha: 0, duration: 0.6 }, '-=0.4');
 
-      tl.from(hero.querySelector('[data-magnetic]'), {
+      tl.from(hero.querySelectorAll('[data-magnetic]'), {
         scale: 0,
         duration: 0.6,
-        ease: 'back.out(1.7)'
+        ease: 'back.out(1.7)',
+        stagger: 0.1
       }, '-=0.35');
 
       if (stars.length) {
@@ -168,24 +186,26 @@
         tl.from(avatars, { scale: 0, transformOrigin: 'center', duration: 0.4, ease: 'back.out(1.7)', stagger: 0.08 }, '-=0.4');
       }
 
-      mediaElements.forEach(function(mediaEl) {
-        if (mediaEl) {
-          tl.from(mediaEl, { clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.out' }, 0.1);
-          var img = mediaEl.querySelector('img');
-          if (img) tl.from(img, { scale: 1.25, duration: 1.1, ease: 'power3.out' }, 0.1);
-        }
-      });
+      // Disabled: VRM media animation
+      // mediaElements.forEach(function(mediaEl) {
+      //   if (mediaEl) {
+      //     tl.from(mediaEl, { clipPath: 'inset(0 0 100% 0)', duration: 0.9, ease: 'power4.out' }, 0.1);
+      //     var img = mediaEl.querySelector('img');
+      //     if (img) tl.from(img, { scale: 1.25, duration: 1.1, ease: 'power3.out' }, 0.1);
+      //   }
+      // });
 
-      if (window.ScrollTrigger) {
-        window.gsap.registerPlugin(window.ScrollTrigger);
-        if (media) {
-          window.gsap.to(media, {
-            yPercent: 8,
-            ease: 'none',
-            scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true }
-          });
-        }
-      }
+      // Disabled: Parallax scroll animation for media
+      // if (window.ScrollTrigger) {
+      //   window.gsap.registerPlugin(window.ScrollTrigger);
+      //   if (media) {
+      //     window.gsap.to(media, {
+      //       yPercent: 8,
+      //       ease: 'none',
+      //       scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true }
+      //     });
+      //   }
+      // }
     }
 
     if (window.ArthehopeAnims) {
@@ -210,6 +230,8 @@
     const canvas = hero.querySelector('[data-hero-vrm-canvas]');
     const danceBtn = hero.querySelector('[data-hero-dance]');
     const danceErr = hero.querySelector('[data-hero-dance-error]');
+    const desktopSkeleton = hero.querySelector('[data-hero-vrm-skeleton]');
+    const mobileSkeleton = hero.querySelector('[data-hero-vrm-skeleton-mobile]');
     if (!deskSlot || !mobSlot || !canvas || !danceBtn) return;
     hero._heroAvatarInit = true;
 
@@ -224,6 +246,12 @@
       frameTopPad: mqDesktop.matches ? 0.02 : 0.16,
       dance: true,
       armSpread: 0.5,
+      onReady: () => {
+        // Fade out skeleton and show canvas when model is loaded
+        if (desktopSkeleton) desktopSkeleton.style.opacity = '0';
+        if (mobileSkeleton) mobileSkeleton.style.opacity = '0';
+        canvas.classList.remove('hidden');
+      }
     });
 
     /* One canvas, two responsive slots — move it with the breakpoint so
@@ -236,7 +264,22 @@
     else if (mqDesktop.addListener) mqDesktop.addListener(place);
     place();
 
-    const setDance = (on) => danceBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    const startLabel = danceBtn.dataset.danceStartLabel || "Let's Dance";
+    const stopLabel = danceBtn.dataset.danceStopLabel || "Stop Dance";
+
+    const updateDanceButtonText = (isActive) => {
+      const rollupItems = danceBtn.querySelectorAll('.hover-rollup__item');
+      const newLabel = isActive ? stopLabel : startLabel;
+      if (rollupItems.length >= 2) {
+        rollupItems[0].textContent = newLabel;
+        rollupItems[1].textContent = newLabel;
+      }
+    };
+
+    const setDance = (on) => {
+      danceBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      updateDanceButtonText(on);
+    };
 
     danceBtn.addEventListener('click', async () => {
       if (runtime.active) {
@@ -312,6 +355,12 @@
       "id": "dance_button_label",
       "label": "Dance button label",
       "default": "Let's Dance"
+    },
+    {
+      "type": "text",
+      "id": "dance_button_stop_label",
+      "label": "Dance button stop label",
+      "default": "Stop Dance"
     },
     {
       "type": "checkbox",
