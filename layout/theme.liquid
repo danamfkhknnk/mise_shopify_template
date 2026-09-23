@@ -30,6 +30,22 @@
     {% # Social, title, etc. %}
     {% render 'meta-tags' %}
 
+    {% comment %}
+      Module import map shared by every 3D/WebAR component (hero avatar,
+      avatar-tracking section). Must be defined once, before any module
+      script runs.
+    {% endcomment %}
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/",
+          "@pixiv/three-vrm": "https://esm.sh/@pixiv/three-vrm@3.1.0?external=three",
+          "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.20/vision_bundle.mjs"
+        }
+      }
+    </script>
+
     {% # GSAP + ScrollTrigger for theme animations (self-hosted, deferred) %}
     <script src="{{ 'gsap.min.js' | asset_url }}" defer></script>
     <script src="{{ 'scrolltrigger.min.js' | asset_url }}" defer></script>

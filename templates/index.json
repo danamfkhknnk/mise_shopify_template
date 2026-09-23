@@ -4,6 +4,10 @@
       "type": "hero",
       "settings": {}
     },
+    "avatar-tracking": {
+      "type": "avatar-tracking",
+      "settings": {}
+    },
     "main-card": {
       "type": "main-card",
       "settings": {},
@@ -42,6 +46,7 @@
   },
   "order": [
     "hero",
+    "avatar-tracking",
     "main-card"
   ]
 }

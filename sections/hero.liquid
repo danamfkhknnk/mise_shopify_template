@@ -1,8 +1,3 @@
-{% liquid
-  assign hero_entry = metaobjects.hero.values | first
-  assign hero_image = section.settings.image | default: hero_entry.image
-%}
-
 <div
   class="full-width w-full mt-6 overflow-hidden"
   data-hero
@@ -25,7 +20,9 @@
           </div>
         {% endif %}
 
-        {% if section.settings.button_label != blank %}
+        {% if section.settings.button_label != blank or section.settings.dance_button_label != blank %}
+          <div class="flex flex-wrap items-center gap-3">
+          {% if section.settings.button_label != blank %}
           <a
             href="{{ section.settings.button_url | default: '/#gallery' }}"
             data-magnetic
@@ -42,6 +39,26 @@
               </svg>
             </span>
           </a>
+          {% endif %}
+
+          {% if section.settings.dance_button_label != blank %}
+            <button
+              type="button"
+              data-hero-dance
+              aria-pressed="false"
+              class="font-primary mt-6 inline-flex items-center rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 cursor-pointer aria-pressed:bg-foreground aria-pressed:text-white"
+            >
+              <span class="hover-rollup leading-[1.3] h-[1.3em]">
+                <span class="hover-rollup__item">{{ section.settings.dance_button_label | escape }}</span>
+                <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.dance_button_label | escape }}</span>
+              </span>
+            </button>
+          {% endif %}
+          </div>
+
+          <p data-hero-dance-error hidden class="m-0 mt-3 text-sm text-accent">
+            {{ 'sections.hero.dance_error' | t }}
+          </p>
         {% endif %}
 
         {% if section.settings.show_rating %}
@@ -70,52 +87,20 @@
       </div>
     </div>
 
-    <!-- Tablet and above hero image - inside grid -->
+    <!-- Tablet and above hero avatar (live VRM) - inside grid -->
     <div class="relative z-0 hidden md:flex justify-center md:mt-0 md:-ml-16" data-hero-media>
-      {% if hero_image %}
-        {{
-          hero_image
-          | image_url: width: 1400
-          | image_tag:
-            class: 'w-auto h-auto lg:h-[760px]',
-            loading: 'eager',
-            sizes: '(min-width: 1024px) 50vw, (min-width: 768px) 50vw'
-        }}
-      {% elsif section.settings.image_url != blank %}
-        <img
-          src="{{ section.settings.image_url }}"
-          alt="{{ section.settings.heading | escape }}"
-          class="w-full h-auto lg:h-[760px]"
-          loading="eager"
-          sizes="(min-width: 1024px) 50vw, (min-width: 768px) 50vw"
-        >
-      {% else %}
-        <div class="w-auto h-auto lg:h-[760px] bg-muted"></div>
-      {% endif %}
+      <div class="w-full aspect-[3/4] lg:aspect-auto lg:h-[760px] lg:w-[570px]" data-hero-vrm-slot="desktop">
+        <canvas
+          class="block w-full h-full"
+          data-hero-vrm-canvas
+          data-model-url="{{ 'lily.vrm' | asset_url }}"
+        ></canvas>
+      </div>
     </div>
   </div>
-    <!-- Mobile hero image - outside grid to avoid overflow clipping -->
+    <!-- Mobile hero avatar (live VRM) - outside grid to avoid overflow clipping -->
   <div class="relative z-0 -mt-48 h-[440px] md:hidden w-full -right-14 overflow-hidden" data-hero-media>
-    {% if hero_image %}
-      {{
-        hero_image
-        | image_url: width: 1400
-        | image_tag:
-          class: 'absolute w-full h-[460px] object-cover object-top',
-          loading: 'eager',
-          sizes: '100vw'
-      }}
-    {% elsif section.settings.image_url != blank %}
-      <img
-        src="{{ section.settings.image_url }}"
-        alt="{{ section.settings.heading | escape }}"
-        class="w-full h-[460px] object-cover object-top"
-        loading="eager"
-        sizes="100vw"
-      >
-    {% else %}
-      <div class="w-full h-[460px] bg-muted"></div>
-    {% endif %}
+    <div class="absolute inset-0" data-hero-vrm-slot="mobile"></div>
   </div>
 
   {% if section.settings.marquee_text != blank %}
@@ -208,6 +193,74 @@
   })();
 {% endjavascript %}
 
+<script type="module">
+  import { createAvatarRuntime } from '{{ 'avatar-runtime.js' | asset_url }}';
+
+  /* Hero avatar: lily.vrm renders by default in the same spot/footprint as
+     the old image (framed from the waist up). "Let's Dance" starts the
+     hidden camera + face/body trackers so the avatar mirrors you — the
+     camera feed itself is never displayed. */
+  function initHeroAvatar() {
+    const hero = document.querySelector('[data-hero]');
+    if (!hero || hero._heroAvatarInit) return;
+
+    const deskSlot = hero.querySelector('[data-hero-vrm-slot="desktop"]');
+    const mobSlot = hero.querySelector('[data-hero-vrm-slot="mobile"]');
+    const canvas = hero.querySelector('[data-hero-vrm-canvas]');
+    const danceBtn = hero.querySelector('[data-hero-dance]');
+    const danceErr = hero.querySelector('[data-hero-dance-error]');
+    if (!deskSlot || !mobSlot || !canvas || !danceBtn) return;
+    hero._heroAvatarInit = true;
+
+    const mqDesktop = window.matchMedia('(min-width: 768px)');
+
+    const runtime = createAvatarRuntime({
+      canvas,
+      modelUrl: canvas.dataset.modelUrl,
+      frameUpperBody: true,
+      /* The mobile slot tucks up behind the card — keep the same headroom
+         the old image had so the avatar never covers the buttons. */
+      frameTopPad: mqDesktop.matches ? 0.02 : 0.16,
+      dance: true,
+      armSpread: 0.5,
+    });
+
+    /* One canvas, two responsive slots — move it with the breakpoint so
+       tablet/desktop and mobile keep their exact image positions. */
+    const place = () => {
+      const slot = mqDesktop.matches ? deskSlot : mobSlot;
+      if (canvas.parentElement !== slot) slot.appendChild(canvas);
+    };
+    if (mqDesktop.addEventListener) mqDesktop.addEventListener('change', place);
+    else if (mqDesktop.addListener) mqDesktop.addListener(place);
+    place();
+
+    const setDance = (on) => danceBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+
+    danceBtn.addEventListener('click', async () => {
+      if (runtime.active) {
+        runtime.stop();
+        setDance(false);
+        return;
+      }
+      if (danceBtn.disabled) return;
+      danceBtn.disabled = true;
+      if (danceErr) danceErr.setAttribute('hidden', '');
+      const ok = await runtime.start();
+      danceBtn.disabled = false;
+      setDance(!!ok);
+      if (!ok && danceErr) danceErr.removeAttribute('hidden');
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeroAvatar, { once: true });
+  } else {
+    initHeroAvatar();
+  }
+  document.addEventListener('page:loaded', initHeroAvatar);
+</script>
+
 {% schema %}
 {
   "name": "t:general.hero",
@@ -252,6 +305,12 @@
       "type": "url",
       "id": "button_url",
       "label": "t:labels.button_url"
+    },
+    {
+      "type": "text",
+      "id": "dance_button_label",
+      "label": "Dance button label",
+      "default": "Let's Dance"
     },
     {
       "type": "checkbox",

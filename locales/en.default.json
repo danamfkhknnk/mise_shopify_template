@@ -100,5 +100,26 @@
     "submit": "Search",
     "no_results_html": "No results found for {{ terms }}",
     "results_for_html": "{{ count }} results found for {{ terms }}"
+  },
+  "sections": {
+    "avatar_tracking": {
+      "loading": "Loading avatar…",
+      "ready": "Avatar ready.",
+      "error_load": "Could not load the avatar. Please check your connection and reload.",
+      "error_webgl": "WebGL is not available in this browser.",
+      "start_tracking": "Start tracking",
+      "stop_tracking": "Stop tracking",
+      "initializing": "Starting camera…",
+      "face_searching": "Show your face to the camera.",
+      "tracking_active": "Tracking you.",
+      "tracking_face": "Face",
+      "tracking_body": "Body",
+      "camera_denied": "Camera permission was denied. Please allow access and try again.",
+      "camera_unavailable": "No camera is available on this device or browser.",
+      "camera_error": "Could not start tracking. Please try again."
+    },
+    "hero": {
+      "dance_error": "Could not start the camera. Please allow camera access and try again."
+    }
   }
 }

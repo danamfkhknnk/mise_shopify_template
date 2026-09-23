@@ -558,6 +558,10 @@ video {
   pointer-events: none;
 }
 
+.visible {
+  visibility: visible;
+}
+
 .invisible {
   visibility: hidden;
 }
@@ -822,6 +826,10 @@ video {
 
 .aspect-square {
   aspect-ratio: 1 / 1;
+}
+
+.aspect-\[3\/4\] {
+  aspect-ratio: 3/4;
 }
 
 .h-10 {
@@ -1891,6 +1899,11 @@ video {
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
+.invert {
+  --tw-invert: invert(100%);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
+}
+
 .filter {
   filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }
@@ -2102,6 +2115,15 @@ video {
 
 .group:hover .group-hover\:opacity-100 {
   opacity: 1;
+}
+
+.aria-pressed\:bg-foreground[aria-pressed="true"] {
+  background-color: var(--color-foreground);
+}
+
+.aria-pressed\:text-white[aria-pressed="true"] {
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2458,8 +2480,16 @@ video {
     grid-column: span 2 / span 2;
   }
 
+  .lg\:aspect-auto {
+    aspect-ratio: auto;
+  }
+
   .lg\:h-\[760px\] {
     height: 760px;
+  }
+
+  .lg\:w-\[570px\] {
+    width: 570px;
   }
 
   .lg\:scroll-mt-32 {

@@ -12,6 +12,7 @@
     "ui:product": "node scripts/visual/product-check.mjs",
     "ui:cart": "node scripts/visual/cart-check.mjs",
     "ui:service": "node scripts/visual/service-check.mjs",
+    "ui:avatar": "node scripts/visual/avatar-check.mjs",
     "ui:check": "npm run ui:screenshot && npm run ui:compare"
   },
   "keywords": [],

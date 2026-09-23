@@ -2,29 +2,47 @@
   "status": "FAIL",
   "threshold": 0.5,
   "results": {
-    "desktop": {
-      "status": "PASS",
-      "source": "baseline",
-      "diffPixels": 6875,
-      "diffPercentage": 0.47
-    },
-    "large-desktop": {
+    "avatar-check": {
       "status": "PASS",
       "source": "baseline",
       "diffPixels": 0,
       "diffPercentage": 0
     },
+    "avatar-closeup": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 0,
+      "diffPercentage": 0
+    },
+    "avatar-dance": {
+      "status": "PASS",
+      "source": "baseline",
+      "diffPixels": 0,
+      "diffPercentage": 0
+    },
+    "desktop": {
+      "status": "FAIL",
+      "source": "baseline",
+      "diffPixels": 206943,
+      "diffPercentage": 14.03
+    },
+    "large-desktop": {
+      "status": "FAIL",
+      "source": "baseline",
+      "diffPixels": 197903,
+      "diffPercentage": 17.18
+    },
     "mobile": {
       "status": "FAIL",
       "source": "baseline",
-      "diffPixels": 45352,
-      "diffPercentage": 13.78
+      "diffPixels": 61844,
+      "diffPercentage": 18.79
     },
     "tablet": {
-      "status": "PASS",
+      "status": "FAIL",
       "source": "baseline",
-      "diffPixels": 2358,
-      "diffPercentage": 0.3
+      "diffPixels": 262553,
+      "diffPercentage": 33.39
     }
   }
 }
