@@ -1209,6 +1209,16 @@ video {
   animation: hero-marquee 22s linear infinite;
 }
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
 .cursor-default {
   cursor: default;
 }
@@ -2129,6 +2139,10 @@ video {
   outline-offset: 2px;
 }
 
+.disabled\:inline:disabled {
+  display: inline;
+}
+
 .disabled\:cursor-not-allowed:disabled {
   cursor: not-allowed;
 }
@@ -2143,6 +2157,10 @@ video {
 
 .disabled\:opacity-50:disabled {
   opacity: 0.5;
+}
+
+.disabled\:opacity-70:disabled {
+  opacity: 0.7;
 }
 
 .group:focus-within .group-focus-within\:-translate-y-\[90\%\] {

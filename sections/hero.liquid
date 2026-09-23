@@ -49,8 +49,19 @@
               aria-pressed="false"
               data-dance-start-label="{{ section.settings.dance_button_label | escape }}"
               data-dance-stop-label="{{ section.settings.dance_button_stop_label | escape }}"
-              class="font-primary inline-flex items-center rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 cursor-pointer aria-pressed:bg-foreground aria-pressed:text-white"
+              class="font-primary inline-flex items-center gap-2 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 cursor-pointer aria-pressed:bg-foreground aria-pressed:text-white disabled:opacity-70"
             >
+              <svg
+                class="hidden disabled:inline w-4 h-4 animate-spin"
+                data-hero-dance-loader
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" stroke-opacity="0.3"/>
+                <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+              </svg>
               <span class="hover-rollup leading-[1.3] h-[1.3em]">
                 <span class="hover-rollup__item">{{ section.settings.dance_button_label | escape }}</span>
                 <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.dance_button_label | escape }}</span>
