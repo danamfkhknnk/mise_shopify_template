@@ -193,7 +193,7 @@ function relaxArm(vrm, THREE, side, spread) {
   const sceneQuat = new THREE.Quaternion();
   vrm.scene.getWorldQuaternion(sceneQuat);
   /* Hands forward-at-side: offset toward camera with forward component */
-  const desiredWorld = new THREE.Vector3(0, -2, 1)
+  const desiredWorld = new THREE.Vector3(0, -1.5, 1)
     .addScaledVector(outward, Math.max(0, spread || 0))
     .normalize();
   const localDir = desiredWorld.applyQuaternion(sceneQuat.clone().invert());
