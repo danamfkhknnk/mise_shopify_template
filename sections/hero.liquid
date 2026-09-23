@@ -21,12 +21,12 @@
         {% endif %}
 
         {% if section.settings.button_label != blank or section.settings.dance_button_label != blank %}
-          <div class="flex flex-wrap items-center gap-3">
+          <div class="flex flex-wrap items-center gap-3 mt-2">
           {% if section.settings.button_label != blank %}
           <a
             href="{{ section.settings.button_url | default: '/#gallery' }}"
             data-magnetic
-            class="font-primary inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 mt-6 no-underline"
+            class="font-primary inline-flex items-center gap-2.5 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 no-underline"
           >
             <span class="hover-rollup leading-[1.3] h-[1.3em]">
               <span class="hover-rollup__item">{{ section.settings.button_label }}</span>
@@ -49,7 +49,7 @@
               aria-pressed="false"
               data-dance-start-label="{{ section.settings.dance_button_label | escape }}"
               data-dance-stop-label="{{ section.settings.dance_button_stop_label | escape }}"
-              class="font-primary mt-6 inline-flex items-center rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 cursor-pointer aria-pressed:bg-foreground aria-pressed:text-white"
+              class="font-primary inline-flex items-center rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 cursor-pointer aria-pressed:bg-foreground aria-pressed:text-white"
             >
               <span class="hover-rollup leading-[1.3] h-[1.3em]">
                 <span class="hover-rollup__item">{{ section.settings.dance_button_label | escape }}</span>
@@ -95,9 +95,9 @@
       <div class="w-full aspect-[3/4] lg:aspect-auto lg:h-[760px] lg:w-[570px] overflow-hidden relative" data-hero-vrm-slot="desktop">
         <!-- Placeholder image while VRM loads -->
         <img
-          src="{{ 'image.png' | asset_url }}"
+          src="{{ 'loader.png' | asset_url }}"
           alt="Loading avatar"
-          class="w-full h-full object-center absolute inset-0 transition-opacity duration-500"
+          class="w-full h-full object-contain mt-4 lg:mt-6 absolute inset-0 transition-opacity duration-500"
           data-hero-vrm-skeleton
         />
         <canvas
@@ -110,12 +110,12 @@
   </div>
     <!-- Mobile hero avatar (live VRM) - outside grid to avoid overflow clipping -->
   <div class="relative z-0 -mt-48 h-[440px] md:hidden w-full -right-14 overflow-hidden pointer-events-none" data-hero-media>
-    <div class="absolute inset-0" data-hero-vrm-slot="mobile">
+    <div class="absolute inset-0 " data-hero-vrm-slot="mobile">
       <!-- Mobile placeholder image while VRM loads -->
       <img
-        src="{{ 'image.png' | asset_url }}"
+        src="{{ 'loader.png' | asset_url }}"
         alt="Loading avatar"
-        class="w-full h-full object-fill transition-opacity duration-500"
+        class="w-full h-full object-contain transition-opacity duration-500 scale-75 origin-bottom translate-y-1"
         data-hero-vrm-skeleton-mobile
       />
     </div>
@@ -243,13 +243,14 @@
       frameUpperBody: true,
       /* The mobile slot tucks up behind the card — keep the same headroom
          the old image had so the avatar never covers the buttons. */
-      frameTopPad: mqDesktop.matches ? 0.02 : 0.16,
+      frameTopPad: mqDesktop.matches ? 0.02 : 0.1,
       dance: true,
       armSpread: 0.5,
       onReady: () => {
         // Fade out skeleton and show canvas when model is loaded
-        if (desktopSkeleton) desktopSkeleton.style.opacity = '0';
-        if (mobileSkeleton) mobileSkeleton.style.opacity = '0';
+        const slot = mqDesktop.matches ? deskSlot : mobSlot;
+        const skeleton = slot === deskSlot ? desktopSkeleton : mobileSkeleton;
+        if (skeleton) skeleton.style.opacity = '0';
         canvas.classList.remove('hidden');
       }
     });
@@ -257,12 +258,30 @@
     /* One canvas, two responsive slots — move it with the breakpoint so
        tablet/desktop and mobile keep their exact image positions. */
     const place = () => {
-      const slot = mqDesktop.matches ? deskSlot : mobSlot;
-      if (canvas.parentElement !== slot) slot.appendChild(canvas);
+      const isMobile = !mqDesktop.matches;
+      const slot = isMobile ? mobSlot : deskSlot;
+      if (canvas.parentElement !== slot) {
+        // Adjust canvas positioning for mobile vs desktop
+        if (isMobile) {
+          canvas.style.position = 'absolute';
+          canvas.style.inset = '0';
+          canvas.style.width = '100%';
+          canvas.style.height = '100%';
+        } else {
+          canvas.style.position = '';
+          canvas.style.inset = '';
+          canvas.style.width = '';
+          canvas.style.height = '';
+        }
+        slot.appendChild(canvas);
+      }
     };
     if (mqDesktop.addEventListener) mqDesktop.addEventListener('change', place);
     else if (mqDesktop.addListener) mqDesktop.addListener(place);
     place();
+
+    // Temporary debug: log initialization
+    console.log('Hero Avatar Init:', { deskSlot, mobSlot, canvas, isMobile: !mqDesktop.matches });
 
     const startLabel = danceBtn.dataset.danceStartLabel || "Let's Dance";
     const stopLabel = danceBtn.dataset.danceStopLabel || "Stop Dance";
