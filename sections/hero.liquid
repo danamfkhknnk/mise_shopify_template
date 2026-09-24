@@ -47,13 +47,17 @@
               data-hero-dance
               data-magnetic
               aria-pressed="false"
+              aria-busy="false"
               data-dance-start-label="{{ section.settings.dance_button_label | escape }}"
               data-dance-stop-label="{{ section.settings.dance_button_stop_label | escape }}"
-              class="font-primary inline-flex items-center gap-2 rounded-md border-2 border-foreground bg-[var(--color-accent)] text-white font-bold uppercase text-sm px-5 py-3 cursor-pointer aria-pressed:bg-foreground aria-pressed:text-white disabled:opacity-70"
+              data-dance-loading-label="{{ 'sections.hero.dance_starting' | t | escape }}"
+              class="font-primary hero-dance inline-flex items-center gap-2 rounded-md border-2 border-foreground bg-accent text-white font-bold uppercase text-sm px-5 py-3 cursor-pointer aria-pressed:bg-foreground aria-pressed:text-white disabled:cursor-wait disabled:opacity-70"
             >
               <svg
-                class="hidden disabled:inline w-4 h-4 animate-spin"
+                class="hero-dance__spinner w-4 h-4 animate-spin"
                 data-hero-dance-loader
+                hidden
+                aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -62,7 +66,7 @@
                 <circle cx="12" cy="12" r="10" stroke-opacity="0.3"/>
                 <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
               </svg>
-              <span class="hover-rollup leading-[1.3] h-[1.3em]">
+              <span class="hover-rollup leading-[1.3] h-[1.3em]" data-hero-dance-label>
                 <span class="hover-rollup__item">{{ section.settings.dance_button_label | escape }}</span>
                 <span class="hover-rollup__item hover-rollup__item--clone" aria-hidden="true">{{ section.settings.dance_button_label | escape }}</span>
               </span>
@@ -147,6 +151,28 @@
     </div>
   {% endif %}
 </div>
+
+{% stylesheet %}
+  /* Dance button: keep accent bg while busy so it never flashes white,
+     and guarantee the spinner shows regardless of Tailwind build state. */
+  .hero-dance[disabled] {
+    background-color: var(--color-accent);
+    color: #fff;
+    cursor: wait;
+  }
+
+  .hero-dance__spinner[hidden] {
+    display: none;
+  }
+
+  .hero-dance.is-loading .hero-dance__spinner:not([hidden]) {
+    display: inline-block;
+  }
+
+  .hero-dance.is-loading > [data-hero-dance-label] {
+    opacity: 0.9;
+  }
+{% endstylesheet %}
 
 {% javascript %}
   (function () {
@@ -296,32 +322,42 @@
 
     const startLabel = danceBtn.dataset.danceStartLabel || "Let's Dance";
     const stopLabel = danceBtn.dataset.danceStopLabel || "Stop Dance";
+    const loadingLabel = danceBtn.dataset.danceLoadingLabel || 'Starting…';
+    const danceLoader = hero.querySelector('[data-hero-dance-loader]');
+    const danceLabelWrap = hero.querySelector('[data-hero-dance-label]');
 
-    const updateDanceButtonText = (isActive) => {
+    const updateDanceButtonText = (newLabel) => {
       const rollupItems = danceBtn.querySelectorAll('.hover-rollup__item');
-      const newLabel = isActive ? stopLabel : startLabel;
       if (rollupItems.length >= 2) {
         rollupItems[0].textContent = newLabel;
         rollupItems[1].textContent = newLabel;
       }
     };
 
+    const setLoading = (on) => {
+      danceBtn.disabled = on;
+      danceBtn.setAttribute('aria-busy', on ? 'true' : 'false');
+      danceBtn.classList.toggle('is-loading', on);
+      if (danceLoader) danceLoader.hidden = !on;
+      updateDanceButtonText(on ? loadingLabel : (danceBtn.getAttribute('aria-pressed') === 'true' ? stopLabel : startLabel));
+    };
+
     const setDance = (on) => {
       danceBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      updateDanceButtonText(on);
+      updateDanceButtonText(on ? stopLabel : startLabel);
     };
 
     danceBtn.addEventListener('click', async () => {
+      if (danceBtn.disabled || danceBtn.getAttribute('aria-busy') === 'true') return;
       if (runtime.active) {
         runtime.stop();
         setDance(false);
         return;
       }
-      if (danceBtn.disabled) return;
-      danceBtn.disabled = true;
+      setLoading(true);
       if (danceErr) danceErr.setAttribute('hidden', '');
       const ok = await runtime.start();
-      danceBtn.disabled = false;
+      setLoading(false);
       setDance(!!ok);
       if (!ok && danceErr) danceErr.removeAttribute('hidden');
     });

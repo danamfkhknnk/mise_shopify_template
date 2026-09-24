@@ -119,7 +119,8 @@
       "camera_error": "Could not start tracking. Please try again."
     },
     "hero": {
-      "dance_error": "Could not start the camera. Please allow camera access and try again."
+      "dance_error": "Could not start the camera. Please allow camera access and try again.",
+      "dance_starting": "Starting…"
     }
   }
 }
